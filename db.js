@@ -1,18 +1,16 @@
 // db.js
-// ده الملف المسؤول عن قاعدة البيانات
-// بنستخدم lowdb اللي بتخزن البيانات في ملف JSON بسيط (سهل للمبتدئين ومفيش تعقيد تنصيب)
+// المسؤول عن الاتصال بقاعدة بيانات MongoDB Atlas
 
-const low = require("lowdb");
-const FileSync = require("lowdb/adapters/FileSync");
+const mongoose = require("mongoose");
 
-const adapter = new FileSync("database.json");
-const db = low(adapter);
+const MONGODB_URI = process.env.MONGODB_URI;
 
-// القيم الافتراضية لو الملف فاضي أول مرة
-db.defaults({
-  users: [],       // كل مستخدم: { id, username, passwordHash }
-  userShows: [],   // كل مسلسل مضاف لليوزر: { id, userId, showId, showName, posterPath }
-  progress: []      // تقدم المشاهدة: { id, userId, showId, seasonNumber, episodeNumber, watched }
-}).write();
+if (!MONGODB_URI) {
+  console.error("⚠️  متغير البيئة MONGODB_URI مش متظبط. ضيفه قبل ما تشغل السيرفر.");
+}
 
-module.exports = db;
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log("✅ اتصل بقاعدة بيانات MongoDB بنجاح"))
+  .catch(err => console.error("❌ فشل الاتصال بقاعدة البيانات:", err.message));
+
+module.exports = mongoose;

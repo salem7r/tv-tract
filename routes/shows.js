@@ -3,11 +3,13 @@
 
 const express = require("express");
 const fetch = require("node-fetch");
-const db = require("../db");
+require("../db");
+const UserShow = require("../models/UserShow");
+const Progress = require("../models/Progress");
 
 const router = express.Router();
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY || "01b494d03f636220f1a288d164afc5d6";
+const TMDB_API_KEY = process.env.TMDB_API_KEY || "YOUR_API_KEY";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
 // middleware: لازم تكون مسجل دخول عشان تستخدم الراوت ده
@@ -34,7 +36,60 @@ router.get("/search", async (req, res) => {
   }
 });
 
-// 2) تفاصيل مسلسل معين (بيرجع كل المواسم)
+// 2) إحصائيات المستخدم (لازم تكون قبل /:showId عشان الترتيب)
+router.get("/stats/summary", requireAuth, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+
+    const watchedEpisodes = await Progress.find({ userId, watched: true });
+    const myShows = await UserShow.find({ userId });
+
+    const totalEpisodes = watchedEpisodes.length;
+
+    const AVG_EPISODE_MINUTES = 45;
+    const totalMinutes = totalEpisodes * AVG_EPISODE_MINUTES;
+    const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
+
+    const perShow = myShows.map(show => {
+      const count = watchedEpisodes.filter(p => p.showId === show.showId).length;
+      return {
+        showId: show.showId,
+        showName: show.showName,
+        posterPath: show.posterPath,
+        episodesWatched: count
+      };
+    }).sort((a, b) => b.episodesWatched - a.episodesWatched);
+
+    res.json({
+      totalEpisodes,
+      totalHours,
+      totalShows: myShows.length,
+      perShow
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب الإحصائيات" });
+  }
+});
+
+// 3) جلب كل مسلسلاتي
+router.get("/my/list", requireAuth, async (req, res) => {
+  try {
+    const shows = await UserShow.find({ userId: req.session.userId });
+    res.json(shows.map(s => ({
+      id: s._id.toString(),
+      userId: s.userId,
+      showId: s.showId,
+      showName: s.showName,
+      posterPath: s.posterPath
+    })));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب مسلسلاتك" });
+  }
+});
+
+// 4) تفاصيل مسلسل معين (بيرجع كل المواسم)
 router.get("/:showId", async (req, res) => {
   const { showId } = req.params;
   try {
@@ -48,7 +103,7 @@ router.get("/:showId", async (req, res) => {
   }
 });
 
-// 3) تفاصيل موسم معين (بيرجع كل الحلقات)
+// 5) تفاصيل موسم معين (بيرجع كل الحلقات)
 router.get("/:showId/season/:seasonNumber", async (req, res) => {
   const { showId, seasonNumber } = req.params;
   try {
@@ -62,112 +117,72 @@ router.get("/:showId/season/:seasonNumber", async (req, res) => {
   }
 });
 
-// 4) إضافة مسلسل لقائمة "مسلسلاتي"
-router.post("/my-shows", requireAuth, (req, res) => {
-  const { showId, showName, posterPath } = req.body;
-  const userId = req.session.userId;
+// 6) إضافة مسلسل لقائمة "مسلسلاتي"
+router.post("/my-shows", requireAuth, async (req, res) => {
+  try {
+    const { showId, showName, posterPath } = req.body;
+    const userId = req.session.userId;
 
-  const already = db.get("userShows")
-    .find({ userId, showId: String(showId) })
-    .value();
+    const already = await UserShow.findOne({ userId, showId: String(showId) });
+    if (already) {
+      return res.status(400).json({ error: "المسلسل ده مضاف بالفعل" });
+    }
 
-  if (already) {
-    return res.status(400).json({ error: "المسلسل ده مضاف بالفعل" });
-  }
-
-  const entry = {
-    id: Date.now().toString(),
-    userId,
-    showId: String(showId),
-    showName,
-    posterPath
-  };
-
-  db.get("userShows").push(entry).write();
-  res.json({ message: "تمت الإضافة", entry });
-});
-
-// 5) جلب كل مسلسلاتي
-router.get("/my/list", requireAuth, (req, res) => {
-  const userId = req.session.userId;
-  const shows = db.get("userShows").filter({ userId }).value();
-  res.json(shows);
-});
-
-// 6) حذف مسلسل من قائمتي
-router.delete("/my-shows/:id", requireAuth, (req, res) => {
-  db.get("userShows").remove({ id: req.params.id, userId: req.session.userId }).write();
-  res.json({ message: "تم الحذف" });
-});
-
-// 7) تعليم حلقة كـ "متفرج عليها" أو إلغاء التعليم
-router.post("/progress", requireAuth, (req, res) => {
-  const { showId, seasonNumber, episodeNumber, watched } = req.body;
-  const userId = req.session.userId;
-
-  const existing = db.get("progress")
-    .find({ userId, showId: String(showId), seasonNumber, episodeNumber })
-    .value();
-
-  if (existing) {
-    db.get("progress")
-      .find({ id: existing.id })
-      .assign({ watched })
-      .write();
-  } else {
-    db.get("progress").push({
-      id: Date.now().toString() + Math.random().toString(36).slice(2),
+    const entry = await UserShow.create({
       userId,
       showId: String(showId),
-      seasonNumber,
-      episodeNumber,
-      watched
-    }).write();
+      showName,
+      posterPath
+    });
+
+    res.json({ message: "تمت الإضافة", entry });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ أثناء الإضافة" });
   }
-
-  res.json({ message: "تم التحديث" });
 });
 
-// 8) جلب تقدم المشاهدة لمسلسل معين
-router.get("/:showId/progress", requireAuth, (req, res) => {
-  const userId = req.session.userId;
-  const { showId } = req.params;
-  const items = db.get("progress")
-    .filter({ userId, showId: String(showId) })
-    .value();
-  res.json(items);
+// 7) حذف مسلسل من قائمتي
+router.delete("/my-shows/:id", requireAuth, async (req, res) => {
+  try {
+    await UserShow.findOneAndDelete({ _id: req.params.id, userId: req.session.userId });
+    res.json({ message: "تم الحذف" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ أثناء الحذف" });
+  }
 });
 
-// 9) إحصائيات المستخدم (عدد الحلقات، تقدير الساعات، تفصيل لكل مسلسل)
-router.get("/stats/summary", requireAuth, (req, res) => {
-  const userId = req.session.userId;
+// 8) تعليم حلقة كـ "متفرج عليها" أو إلغاء التعليم
+router.post("/progress", requireAuth, async (req, res) => {
+  try {
+    const { showId, seasonNumber, episodeNumber, watched } = req.body;
+    const userId = req.session.userId;
 
-  const watchedEpisodes = db.get("progress").filter({ userId, watched: true }).value();
-  const myShows = db.get("userShows").filter({ userId }).value();
+    await Progress.findOneAndUpdate(
+      { userId, showId: String(showId), seasonNumber, episodeNumber },
+      { userId, showId: String(showId), seasonNumber, episodeNumber, watched },
+      { upsert: true, new: true }
+    );
 
-  const totalEpisodes = watchedEpisodes.length;
+    res.json({ message: "تم التحديث" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ أثناء التحديث" });
+  }
+});
 
-  // بنفترض متوسط مدة الحلقة 45 دقيقة (تقدير تقريبي مفيش API بيديها بالظبط بسهولة)
-  const AVG_EPISODE_MINUTES = 45;
-  const totalMinutes = totalEpisodes * AVG_EPISODE_MINUTES;
-  const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
-
-  const perShow = myShows.map(show => {
-    const count = watchedEpisodes.filter(p => p.showId === show.showId).length;
-    return {
-      showId: show.showId,
-      showName: show.showName,
-      posterPath: show.posterPath,
-      episodesWatched: count
-    };
-  }).sort((a, b) => b.episodesWatched - a.episodesWatched);
-
-  res.json({
-    totalEpisodes,
-    totalHours,
-    totalShows: myShows.length,
-    perShow
-  });
+// 9) جلب تقدم المشاهدة لمسلسل معين
+router.get("/:showId/progress", requireAuth, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { showId } = req.params;
+    const items = await Progress.find({ userId, showId: String(showId) });
+    res.json(items);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب التقدم" });
+  }
 });
 
 module.exports = router;
