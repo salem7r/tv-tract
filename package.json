@@ -1,0 +1,16 @@
+{
+  "name": "tv-time-clone",
+  "version": "1.0.0",
+  "description": "تطبيق بسيط لتتبع مشاهدة المسلسلات",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "lowdb": "^1.0.0",
+    "node-fetch": "^2.7.0"
+  }
+}

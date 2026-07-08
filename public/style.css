@@ -1,0 +1,439 @@
+/* ============================================
+   TV Time Clone — Design System
+   هوية بصرية مستوحاة من دليل القنوات وعداد الشريط
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root {
+  --bg: #12151a;
+  --surface: #1a1e26;
+  --surface-2: #222732;
+  --line: #2c323d;
+  --text: #f2ede4;
+  --text-muted: #8b92a0;
+  --amber: #e8a33d;
+  --amber-dim: #b77e2a;
+  --teal: #4fb6a8;
+  --coral: #d9614f;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Tajawal', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+h1, h2, h3 {
+  font-family: 'Changa', 'Tajawal', sans-serif;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ===== Header ===== */
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+header h1 {
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+header h1::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+  display: inline-block;
+}
+
+.back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.back-link:hover { color: var(--text); border-color: var(--amber); }
+
+#userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+#userInfo button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+#userInfo button:hover { border-color: var(--coral); color: var(--coral); }
+
+/* ===== Layout ===== */
+
+main {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 20px 60px;
+}
+
+section { margin-bottom: 10px; }
+
+section h2 {
+  font-size: 19px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 36px 0;
+}
+
+/* ===== Inputs ===== */
+
+input[type="text"], input[type="password"] {
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-family: 'Tajawal', sans-serif;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  margin-bottom: 15px;
+  transition: border-color 0.15s ease;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+  outline: none;
+  border-color: var(--amber);
+}
+
+input::placeholder { color: var(--text-muted); }
+
+/* ===== Grid & Cards ===== */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  text-align: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover { border-color: var(--amber-dim); transform: translateY(-2px); }
+
+.card img {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: var(--surface-2);
+}
+
+.card h3 {
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: 'Tajawal', sans-serif;
+  margin: 5px 0;
+  line-height: 1.4;
+}
+
+.card button {
+  width: 100%;
+  padding: 9px;
+  border: none;
+  border-radius: 6px;
+  background: var(--amber);
+  color: #12151a;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s ease;
+}
+
+.card button:hover { background: #f2b559; }
+
+.card a { color: inherit; text-decoration: none; }
+
+/* ===== Auth pages ===== */
+
+.auth-container {
+  max-width: 400px;
+  margin: 90px auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 36px 32px;
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.auth-container h1 {
+  font-size: 26px;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.auth-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--amber);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 22px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.tab.active { background: var(--amber); color: #12151a; font-weight: 700; }
+
+.hidden { display: none; }
+
+form { display: flex; flex-direction: column; gap: 4px; }
+
+form button {
+  padding: 13px;
+  background: var(--amber);
+  border: none;
+  border-radius: 8px;
+  color: #12151a;
+  font-family: 'Tajawal', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s ease;
+}
+
+form button:hover { background: #f2b559; }
+
+#message { color: var(--coral); margin-top: 14px; font-size: 14px; min-height: 18px; }
+
+/* ===== Stats (signature element: tape-counter digits) ===== */
+
+.stats-box {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: repeating-linear-gradient(
+    180deg,
+    var(--surface-2) 0px,
+    var(--surface-2) 2px,
+    #1e232d 2px,
+    #1e232d 4px
+  );
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  flex: 1;
+  min-width: 130px;
+}
+
+.stat-card .number {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--amber);
+  text-shadow: 0 0 12px rgba(232, 163, 61, 0.35);
+  letter-spacing: 1px;
+}
+
+.stat-card .label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-family: 'Tajawal', sans-serif;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.stats-table th, .stats-table td {
+  padding: 12px 14px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.stats-table tr:last-child td { border-bottom: none; }
+
+.stats-table th {
+  background: var(--surface-2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.stats-table td:last-child {
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--amber);
+  font-weight: 600;
+}
+
+/* ===== Show detail / episodes ===== */
+
+.season-block {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.season-block h3 {
+  font-size: 15px;
+  color: var(--amber);
+  margin-bottom: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+.episode-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+}
+
+.episode-row:last-child { border-bottom: none; }
+
+.episode-row span { font-size: 14px; color: var(--text); }
+
+/* الشيك بوكس بشكل "تذكرة مقطوعة" بدل الشكل الافتراضي */
+.episode-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border: 2px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-2);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.episode-row input[type="checkbox"]:checked {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.episode-row input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #12151a;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.episode-row:has(input:checked) span {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--line);
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 600px) {
+  header { padding: 14px 18px; }
+  main { padding: 0 14px 40px; margin-top: 16px; }
+  .stats-box { flex-direction: column; }
+  .auth-container { margin: 40px auto; padding: 28px 22px; }
+}
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
