@@ -1,6 +1,9 @@
 // public/app.js
 // منطق الصفحة الرئيسية: التحقق من تسجيل الدخول، البحث، عرض مسلسلاتي
 
+// بنحتفظ بمجموعة showId بتاعة المسلسلات المضافة بالفعل، عشان نقدر نوريها في نتايج البحث
+let myShowIds = new Set();
+
 async function checkAuth() {
   const res = await fetch("/api/auth/me");
   const data = await res.json();
@@ -26,8 +29,16 @@ async function loadMyShows() {
   const shows = await res.json();
   const container = document.getElementById("myShows");
 
+  myShowIds = new Set(shows.map(s => String(s.showId)));
+
   if (shows.length === 0) {
-    container.innerHTML = "<p>لسه معندكش مسلسلات مضافة</p>";
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📺</div>
+        <p>لسه معندكش مسلسلات مضافة</p>
+        <p class="empty-state-hint">دور على مسلسل في خانة البحث فوق وضيفه هنا</p>
+      </div>
+    `;
     return;
   }
 
@@ -41,20 +52,25 @@ async function loadMyShows() {
           <img src="${poster}" alt="${show.showName}">
           <h3>${show.showName}</h3>
         </a>
-        <button onclick="removeShow('${show.id}')">حذف من قائمتي</button>
+        <button class="btn-danger" onclick="removeShow('${show.id}', ${JSON.stringify(show.showName)})">حذف من قائمتي</button>
       </div>
     `;
   }).join("");
 }
 
-async function removeShow(id) {
+async function removeShow(id, showName) {
+  const confirmed = confirmAction(`متأكد إنك عايز تحذف "${showName}" من قائمتك؟ هيتمسح تقدمك فيه.`);
+  if (!confirmed) return;
+
   await fetch(`/api/shows/my-shows/${id}`, { method: "DELETE" });
+  showToast("تم الحذف");
   loadMyShows();
+  loadStats();
 }
 
 async function searchShows(query) {
   const container = document.getElementById("searchResults");
-  container.innerHTML = "جاري البحث...";
+  container.innerHTML = `<div class="search-loading">جاري البحث...</div>`;
 
   const res = await fetch(`/api/shows/search?query=${encodeURIComponent(query)}`);
   const results = await res.json();
@@ -68,19 +84,26 @@ async function searchShows(query) {
     const poster = show.poster_path
       ? `https://image.tmdb.org/t/p/w200${show.poster_path}`
       : "https://via.placeholder.com/150x220?text=No+Image";
+
+    const alreadyAdded = myShowIds.has(String(show.id));
+    const buttonHtml = alreadyAdded
+      ? `<button class="btn-added" disabled>✓ مضاف بالفعل</button>`
+      : `<button onclick='addToMyShows(${show.id}, ${JSON.stringify(show.name)}, ${JSON.stringify(show.poster_path)}, this)'>إضافة لقائمتي</button>`;
+
     return `
       <div class="card">
         <img src="${poster}" alt="${show.name}">
         <h3>${show.name}</h3>
-        <button onclick='addToMyShows(${show.id}, ${JSON.stringify(show.name)}, ${JSON.stringify(show.poster_path)})'>
-          إضافة لقائمتي
-        </button>
+        ${buttonHtml}
       </div>
     `;
   }).join("");
 }
 
-async function addToMyShows(showId, showName, posterPath) {
+async function addToMyShows(showId, showName, posterPath, btn) {
+  btn.disabled = true;
+  btn.textContent = "جاري الإضافة...";
+
   const res = await fetch("/api/shows/my-shows", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -89,10 +112,16 @@ async function addToMyShows(showId, showName, posterPath) {
   const data = await res.json();
 
   if (res.ok) {
-    alert("تمت الإضافة لقائمتك");
+    showToast(`تمت إضافة "${showName}" لقائمتك`);
+    btn.textContent = "✓ مضاف بالفعل";
+    btn.classList.add("btn-added");
+    myShowIds.add(String(showId));
     loadMyShows();
+    loadStats();
   } else {
-    alert(data.error);
+    showToast(data.error, "error");
+    btn.disabled = false;
+    btn.textContent = "إضافة لقائمتي";
   }
 }
 
@@ -150,6 +179,10 @@ async function loadStats() {
   document.getElementById("statsTable").innerHTML = tableHtml;
 }
 
-checkAuth();
-loadMyShows();
-loadStats();
+async function init() {
+  await checkAuth();
+  await loadMyShows(); // لازم تخلص الأول عشان نعرف myShowIds قبل أي بحث
+  loadStats();
+}
+
+init();

@@ -359,6 +359,138 @@ form button:hover { background: #f2b559; }
 
 /* ===== Show detail / episodes ===== */
 
+/* ===== Toast notifications ===== */
+
+#toastContainer {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Tajawal', sans-serif;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: 90vw;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.toast-success { border-color: var(--teal); }
+.toast-error { border-color: var(--coral); color: var(--coral); }
+
+/* ===== Empty state ===== */
+
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  grid-column: 1 / -1;
+}
+
+.empty-state-icon { font-size: 36px; margin-bottom: 10px; }
+
+.empty-state p { margin: 4px 0; }
+
+.empty-state-hint { font-size: 13px; color: var(--text-muted); }
+
+.search-loading {
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  padding: 10px 0;
+}
+
+/* ===== Card button variants ===== */
+
+.card button.btn-danger {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--coral);
+}
+
+.card button.btn-danger:hover { background: var(--coral); color: #12151a; }
+
+.card button.btn-added {
+  background: var(--surface-2);
+  color: var(--teal);
+  cursor: default;
+}
+
+.card button.btn-added:hover { background: var(--surface-2); }
+
+.card button:disabled { opacity: 0.6; cursor: default; }
+
+/* ===== Season accordion ===== */
+
+.season-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.season-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.season-chevron {
+  color: var(--amber);
+  font-size: 13px;
+  width: 12px;
+}
+
+.season-header h3 { margin: 0; }
+
+.season-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.btn-mark-season {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--teal);
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-mark-season:hover { background: var(--teal); color: #12151a; }
+.btn-mark-season:disabled { opacity: 0.6; cursor: default; }
+
+.season-episodes { margin-top: 14px; }
+
 .season-block {
   background: var(--surface);
   border: 1px solid var(--line);
