@@ -89,6 +89,101 @@ router.get("/my/list", requireAuth, async (req, res) => {
   }
 });
 
+// 3) قائمة المشاهدة: الحلقة الجاية المفروض تتفرج عليها في كل مسلسل
+router.get("/my/next-episodes", requireAuth, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const myShows = await UserShow.find({ userId });
+
+    const results = await Promise.all(myShows.map(async (show) => {
+      try {
+        // 1) هات المواسم وعدد حلقات كل موسم من TMDb
+        const detailsUrl = `${TMDB_BASE}/tv/${show.showId}?api_key=${TMDB_API_KEY}&language=ar`;
+        const detailsRes = await fetch(detailsUrl);
+        const details = await detailsRes.json();
+
+        const seasons = (details.seasons || [])
+          .filter(s => s.season_number > 0)
+          .sort((a, b) => a.season_number - b.season_number);
+
+        // 2) هات آخر حلقة اتفرج عليها اليوزر في المسلسل ده
+        const watched = await Progress.find({ userId, showId: show.showId, watched: true });
+
+        let lastSeason = 0;
+        let lastEpisode = 0;
+        watched.forEach(w => {
+          if (w.seasonNumber > lastSeason || (w.seasonNumber === lastSeason && w.episodeNumber > lastEpisode)) {
+            lastSeason = w.seasonNumber;
+            lastEpisode = w.episodeNumber;
+          }
+        });
+
+        // 3) احسب الحلقة الجاية
+        let nextSeason = null;
+        let nextEpisode = null;
+
+        if (lastSeason === 0) {
+          // لسه معملش تعليم لأي حلقة، نبدأ من الأول
+          if (seasons.length > 0) {
+            nextSeason = seasons[0].season_number;
+            nextEpisode = 1;
+          }
+        } else {
+          const currentSeasonInfo = seasons.find(s => s.season_number === lastSeason);
+          if (currentSeasonInfo && lastEpisode < currentSeasonInfo.episode_count) {
+            nextSeason = lastSeason;
+            nextEpisode = lastEpisode + 1;
+          } else {
+            const nextSeasonInfo = seasons.find(s => s.season_number === lastSeason + 1);
+            if (nextSeasonInfo) {
+              nextSeason = nextSeasonInfo.season_number;
+              nextEpisode = 1;
+            }
+            // لو مفيش موسم جاي، يبقى المسلسل خلص (نسيب nextSeason=null)
+          }
+        }
+
+        // 4) هات اسم الحلقة الجاية (لو موجودة)
+        let episodeName = null;
+        if (nextSeason) {
+          const seasonUrl = `${TMDB_BASE}/tv/${show.showId}/season/${nextSeason}?api_key=${TMDB_API_KEY}&language=ar`;
+          const seasonRes = await fetch(seasonUrl);
+          const seasonData = await seasonRes.json();
+          const ep = (seasonData.episodes || []).find(e => e.episode_number === nextEpisode);
+          episodeName = ep ? ep.name : null;
+        }
+
+        return {
+          showId: show.showId,
+          showName: show.showName,
+          posterPath: show.posterPath,
+          completed: nextSeason === null,
+          nextSeason,
+          nextEpisode,
+          episodeName
+        };
+      } catch (err) {
+        console.error(`خطأ في حساب الحلقة الجاية للمسلسل ${show.showId}:`, err.message);
+        return {
+          showId: show.showId,
+          showName: show.showName,
+          posterPath: show.posterPath,
+          completed: false,
+          nextSeason: null,
+          nextEpisode: null,
+          episodeName: null,
+          error: true
+        };
+      }
+    }));
+
+    res.json(results);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب قائمة المشاهدة" });
+  }
+});
+
 // 4) تفاصيل مسلسل معين (بيرجع كل المواسم)
 router.get("/:showId", async (req, res) => {
   const { showId } = req.params;

@@ -359,6 +359,89 @@ form button:hover { background: #f2b559; }
 
 /* ===== Show detail / episodes ===== */
 
+/* ===== Up Next list (قائمة المشاهدة) ===== */
+
+.up-next-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.up-next-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  transition: border-color 0.15s ease;
+}
+
+.up-next-row:hover { border-color: var(--amber-dim); }
+
+.up-next-check {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  background: transparent;
+  color: var(--teal);
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.up-next-check:hover { background: var(--teal); color: #12151a; }
+.up-next-check:disabled { opacity: 0.6; cursor: default; }
+
+.up-next-check-done {
+  border-color: var(--amber);
+  cursor: default;
+  font-size: 20px;
+}
+
+.up-next-info { flex: 1; min-width: 0; }
+
+.up-next-showname {
+  font-family: 'Changa', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 3px;
+}
+
+.up-next-episode {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  color: var(--amber);
+  margin-bottom: 2px;
+}
+
+.up-next-title {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.up-next-poster {
+  width: 50px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+@media (max-width: 600px) {
+  .up-next-title { max-width: 160px; }
+}
+
 /* ===== Toast notifications ===== */
 
 #toastContainer {
