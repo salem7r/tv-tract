@@ -184,7 +184,48 @@ router.get("/my/next-episodes", requireAuth, async (req, res) => {
   }
 });
 
-// 4) تفاصيل مسلسل معين (بيرجع كل المواسم)
+// 4) المرتقبة: مواعيد نزول الحلقات الجديدة (من بيانات TMDb الرسمية)
+router.get("/my/upcoming", requireAuth, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const myShows = await UserShow.find({ userId });
+
+    const results = await Promise.all(myShows.map(async (show) => {
+      try {
+        const detailsUrl = `${TMDB_BASE}/tv/${show.showId}?api_key=${TMDB_API_KEY}&language=ar`;
+        const detailsRes = await fetch(detailsUrl);
+        const details = await detailsRes.json();
+
+        const next = details.next_episode_to_air;
+        if (!next || !next.air_date) return null;
+
+        return {
+          showId: show.showId,
+          showName: show.showName,
+          posterPath: show.posterPath,
+          airDate: next.air_date,
+          seasonNumber: next.season_number,
+          episodeNumber: next.episode_number,
+          episodeName: next.name || null
+        };
+      } catch (err) {
+        console.error(`خطأ في جلب موعد الحلقة الجاية للمسلسل ${show.showId}:`, err.message);
+        return null;
+      }
+    }));
+
+    const upcoming = results
+      .filter(Boolean)
+      .sort((a, b) => new Date(a.airDate) - new Date(b.airDate));
+
+    res.json(upcoming);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب المرتقبة" });
+  }
+});
+
+// 5) تفاصيل مسلسل معين (بيرجع كل المواسم)
 router.get("/:showId", async (req, res) => {
   const { showId } = req.params;
   try {

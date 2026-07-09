@@ -118,6 +118,76 @@ async function markNextWatched(showId, seasonNumber, episodeNumber, btn) {
   loadUpNext();
 }
 
+let upcomingLoaded = false;
+
+function switchUpNextView(view, btn) {
+  document.querySelectorAll(".sub-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+
+  if (view === "upnext") {
+    document.getElementById("upNextList").classList.remove("hidden");
+    document.getElementById("upcomingList").classList.add("hidden");
+  } else {
+    document.getElementById("upNextList").classList.add("hidden");
+    document.getElementById("upcomingList").classList.remove("hidden");
+    if (!upcomingLoaded) {
+      upcomingLoaded = true;
+      loadUpcoming();
+    }
+  }
+}
+
+function formatAirDate(dateStr) {
+  const date = new Date(dateStr + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((date - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "النهاردة";
+  if (diffDays === 1) return "بكرة";
+  if (diffDays > 1 && diffDays <= 7) {
+    return date.toLocaleDateString("ar-EG-u-nu-latn", { weekday: "long" });
+  }
+  return date.toLocaleDateString("ar-EG-u-nu-latn", { day: "numeric", month: "long" });
+}
+
+async function loadUpcoming() {
+  const container = document.getElementById("upcomingList");
+  container.innerHTML = skeletonRows(3);
+
+  const res = await fetch("/api/shows/my/upcoming");
+  const items = await res.json();
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📅</div>
+        <p>مفيش حلقات جديدة متوقع نزولها قريب</p>
+        <p class="empty-state-hint">أي حلقة جاية لمسلسلاتك هتظهر هنا أول ما تتحدد</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map(item => {
+    const poster = item.posterPath
+      ? `https://image.tmdb.org/t/p/w200${item.posterPath}`
+      : "https://via.placeholder.com/100x150?text=No+Image";
+
+    return `
+      <div class="up-next-row">
+        <div class="upcoming-date-badge">${formatAirDate(item.airDate)}</div>
+        <div class="up-next-info">
+          <div class="up-next-showname">${escapeHtml(item.showName)}</div>
+          <div class="up-next-episode">موسم ${item.seasonNumber} • حلقة ${item.episodeNumber}</div>
+          ${item.episodeName ? `<div class="up-next-title">${escapeHtml(item.episodeName)}</div>` : ""}
+        </div>
+        <img class="up-next-poster" src="${poster}" alt="${escapeHtml(item.showName)}">
+      </div>
+    `;
+  }).join("");
+}
+
 async function init() {
   await checkAuth();
   loadMyShows();
