@@ -10,9 +10,11 @@ async function checkAuth() {
 }
 
 async function loadMyShows() {
+  const container = document.getElementById("myShows");
+  container.innerHTML = skeletonGrid(4);
+
   const res = await fetch("/api/shows/my/list");
   const shows = await res.json();
-  const container = document.getElementById("myShows");
 
   if (shows.length === 0) {
     container.innerHTML = `
@@ -53,7 +55,7 @@ async function removeShow(id, showName) {
 
 async function loadUpNext() {
   const container = document.getElementById("upNextList");
-  container.innerHTML = `<div class="search-loading">جاري تحميل قائمة المشاهدة...</div>`;
+  container.innerHTML = skeletonRows(3);
 
   const res = await fetch("/api/shows/my/next-episodes");
   const shows = await res.json();

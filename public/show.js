@@ -9,11 +9,13 @@ document.getElementById("showTitle").textContent = showName;
 
 async function loadShow() {
   const container = document.getElementById("seasonsContainer");
-  container.innerHTML = `<div class="search-loading">جاري تحميل المواسم...</div>`;
+  container.innerHTML = skeletonSeasons();
 
-  // 1) تفاصيل المسلسل عشان نعرف عدد المواسم
+  // 1) تفاصيل المسلسل عشان نعرف عدد المواسم ومعلومات إضافية
   const showRes = await fetch(`/api/shows/${showId}`);
   const show = await showRes.json();
+
+  populateHero(show);
 
   // 2) تقدم المشاهدة الحالي
   const progressRes = await fetch(`/api/shows/${showId}/progress`);
@@ -84,6 +86,34 @@ async function loadShow() {
     `;
     container.appendChild(block);
   }
+}
+
+function populateHero(show) {
+  const heroEl = document.getElementById("showHero");
+  const imgEl = document.getElementById("heroBackdrop");
+
+  const backdropPath = show.backdrop_path || show.poster_path;
+  if (backdropPath) {
+    imgEl.onload = () => heroEl.classList.add("hero-loaded");
+    imgEl.src = `https://image.tmdb.org/t/p/w780${backdropPath}`;
+  } else {
+    heroEl.classList.add("hero-loaded", "no-backdrop");
+  }
+
+  if (show.name) {
+    document.getElementById("showTitle").textContent = show.name;
+  }
+
+  const year = show.first_air_date ? show.first_air_date.split("-")[0] : null;
+  const rating = show.vote_average ? show.vote_average.toFixed(1) : null;
+  const genres = (show.genres || []).map(g => g.name).join("، ");
+
+  const metaParts = [];
+  if (year) metaParts.push(year);
+  if (rating && rating !== "0.0") metaParts.push(`⭐ ${rating}`);
+  if (genres) metaParts.push(genres);
+
+  document.getElementById("showMeta").textContent = metaParts.join(" • ");
 }
 
 function toggleSeason(headerEl) {

@@ -19,7 +19,7 @@ async function loadMyShowIds() {
 
 async function searchShows(query) {
   const container = document.getElementById("searchResults");
-  container.innerHTML = `<div class="search-loading">جاري البحث...</div>`;
+  container.innerHTML = skeletonGrid(6);
 
   const res = await fetch(`/api/shows/search?query=${encodeURIComponent(query)}`);
   const results = await res.json();
@@ -34,6 +34,15 @@ async function searchShows(query) {
       ? `https://image.tmdb.org/t/p/w200${show.poster_path}`
       : "https://via.placeholder.com/150x220?text=No+Image";
 
+    const year = show.first_air_date ? show.first_air_date.split("-")[0] : null;
+    const rating = show.vote_average ? show.vote_average.toFixed(1) : null;
+    const metaParts = [];
+    if (year) metaParts.push(year);
+    if (rating && rating !== "0.0") metaParts.push(`⭐ ${rating}`);
+    const metaHtml = metaParts.length
+      ? `<div class="card-meta">${metaParts.join(" • ")}</div>`
+      : "";
+
     const alreadyAdded = myShowIds.has(String(show.id));
     const buttonHtml = alreadyAdded
       ? `<button class="btn-added" disabled>✓ مضاف بالفعل</button>`
@@ -43,6 +52,7 @@ async function searchShows(query) {
       <div class="card">
         <img src="${poster}" alt="${escapeHtml(show.name)}">
         <h3>${escapeHtml(show.name)}</h3>
+        ${metaHtml}
         ${buttonHtml}
       </div>
     `;

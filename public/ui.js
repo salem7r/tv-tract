@@ -36,3 +36,40 @@ function showToast(message, type = "success") {
 function confirmAction(message) {
   return window.confirm(message);
 }
+
+// ===== Skeleton loading placeholders =====
+// بنستخدمهم بدل نص "جاري التحميل..." العادي، عشان الصفحة تحس إنها بتحمّل أسرع
+
+function skeletonGrid(count = 6) {
+  return Array.from({ length: count }).map(() => `
+    <div class="card skeleton-card">
+      <div class="skeleton-shimmer skeleton-poster"></div>
+      <div class="skeleton-shimmer skeleton-line"></div>
+      <div class="skeleton-shimmer skeleton-line-short"></div>
+    </div>
+  `).join("");
+}
+
+function skeletonRows(count = 3) {
+  return Array.from({ length: count }).map(() => `
+    <div class="up-next-row skeleton-card">
+      <div class="skeleton-shimmer skeleton-circle"></div>
+      <div class="up-next-info">
+        <div class="skeleton-shimmer skeleton-line"></div>
+        <div class="skeleton-shimmer skeleton-line-short"></div>
+      </div>
+      <div class="skeleton-shimmer skeleton-thumb"></div>
+    </div>
+  `).join("");
+}
+
+function skeletonSeasons(count = 2) {
+  return Array.from({ length: count }).map(() => `
+    <div class="season-block skeleton-card">
+      <div class="skeleton-shimmer skeleton-line" style="width:110px;height:16px;"></div>
+      <div class="skeleton-shimmer skeleton-line" style="margin-top:16px;"></div>
+      <div class="skeleton-shimmer skeleton-line"></div>
+      <div class="skeleton-shimmer skeleton-line-short"></div>
+    </div>
+  `).join("");
+}

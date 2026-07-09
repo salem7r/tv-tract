@@ -403,6 +403,99 @@ form button:hover { background: #f2b559; }
   padding: 10px 24px;
 }
 
+.header-minimal {
+  position: static;
+  border-bottom: none;
+  padding: 14px 20px;
+  background: transparent;
+}
+
+/* ===== Show hero (خلفية صفحة المسلسل) ===== */
+
+.show-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  max-height: 280px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.show-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.show-hero.hero-loaded .show-hero-img { opacity: 1; }
+
+.show-hero:not(.hero-loaded) {
+  background: linear-gradient(90deg, var(--surface-2) 25%, #2a303c 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+}
+
+.show-hero.no-backdrop { background: var(--surface-2); animation: none; }
+
+.show-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(18,21,26,0.1) 0%, rgba(18,21,26,0.55) 55%, var(--bg) 100%);
+}
+
+.show-hero-content {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  padding: 18px 20px;
+}
+
+.show-hero-content h1 {
+  font-size: 24px;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+.show-hero-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--amber);
+}
+
+/* ===== Card meta (سنة وتقييم في نتايج البحث) ===== */
+
+.card-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin: -2px 0 6px;
+}
+
+/* ===== Skeleton loading ===== */
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--surface-2) 25%, #2a303c 37%, var(--surface-2) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+.skeleton-card { pointer-events: none; border-color: var(--line); }
+
+.skeleton-poster { aspect-ratio: 2/3; width: 100%; margin-bottom: 8px; }
+.skeleton-line { height: 12px; margin: 6px 0; }
+.skeleton-line-short { height: 10px; width: 55%; }
+.skeleton-circle { width: 42px; height: 42px; min-width: 42px; border-radius: 50%; }
+.skeleton-thumb { width: 50px; height: 75px; border-radius: 6px; }
+
 /* ===== Bottom navigation ===== */
 
 body.has-bottom-nav main {
