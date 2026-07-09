@@ -366,6 +366,109 @@ form button:hover { background: #f2b559; }
 
 /* ===== Show detail / episodes ===== */
 
+/* ===== Profile card ===== */
+
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--amber);
+  color: #12151a;
+  font-family: 'Changa', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.profile-username {
+  font-family: 'Changa', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.profile-logout {
+  width: auto;
+  padding: 10px 24px;
+}
+
+/* ===== Bottom navigation ===== */
+
+body.has-bottom-nav main {
+  padding-bottom: 90px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0 calc(10px + env(safe-area-inset-bottom));
+  z-index: 100;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  padding: 6px 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.bottom-nav-item.active { color: var(--amber); }
+
+.bottom-nav-item:hover { color: var(--text); }
+.bottom-nav-item.active:hover { color: var(--amber); }
+
+.bottom-nav-indicator {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: var(--amber);
+  border-radius: 2px;
+}
+
+.bottom-nav-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-icon svg { width: 100%; height: 100%; }
+
+.bottom-nav-label {
+  font-size: 11px;
+  font-family: 'Tajawal', sans-serif;
+}
+
+.bottom-nav-item.active .bottom-nav-label { font-weight: 700; }
+
 /* ===== Up Next list (قائمة المشاهدة) ===== */
 
 .up-next-list {

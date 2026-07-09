@@ -147,3 +147,4 @@ async function markSeasonWatched(seasonNumber, episodeCount, btn) {
 }
 
 loadShow();
+renderBottomNav("shows");
