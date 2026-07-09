@@ -8,6 +8,10 @@ const User = require("../models/User");
 
 const router = express.Router();
 
+// نسمح بس بحروف إنجليزية وأرقام و _ و - في اسم المستخدم
+// عشان نمنع من الأساس أي محاولة حقن كود ضار (XSS) عن طريق اسم المستخدم
+const USERNAME_PATTERN = /^[a-zA-Z0-9_-]{3,20}$/;
+
 // تسجيل حساب جديد
 router.post("/register", async (req, res) => {
   try {
@@ -15,6 +19,16 @@ router.post("/register", async (req, res) => {
 
     if (!username || !password) {
       return res.status(400).json({ error: "لازم تكتب اسم المستخدم وكلمة السر" });
+    }
+
+    if (!USERNAME_PATTERN.test(username)) {
+      return res.status(400).json({
+        error: "اسم المستخدم لازم يكون من 3 لـ 20 حرف، وحروف إنجليزية وأرقام و _ بس"
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: "كلمة السر لازم تكون 6 أحرف على الأقل" });
     }
 
     const existingUser = await User.findOne({ username });

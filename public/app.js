@@ -14,7 +14,7 @@ async function checkAuth() {
   }
 
   document.getElementById("userInfo").innerHTML = `
-    <span>👋 ${data.username}</span>
+    <span>👋 ${escapeHtml(data.username)}</span>
     <button id="logoutBtn">تسجيل الخروج</button>
   `;
 
@@ -49,8 +49,8 @@ async function loadMyShows() {
     return `
       <div class="card">
         <a href="/show.html?id=${show.showId}&name=${encodeURIComponent(show.showName)}">
-          <img src="${poster}" alt="${show.showName}">
-          <h3>${show.showName}</h3>
+          <img src="${poster}" alt="${escapeHtml(show.showName)}">
+          <h3>${escapeHtml(show.showName)}</h3>
         </a>
         <button class="btn-danger" onclick="removeShow('${show.id}', ${JSON.stringify(show.showName)})">حذف من قائمتي</button>
       </div>
@@ -93,8 +93,8 @@ async function searchShows(query) {
 
     return `
       <div class="card">
-        <img src="${poster}" alt="${show.name}">
-        <h3>${show.name}</h3>
+        <img src="${poster}" alt="${escapeHtml(show.name)}">
+        <h3>${escapeHtml(show.name)}</h3>
         ${buttonHtml}
       </div>
     `;
@@ -166,10 +166,10 @@ async function loadUpNext() {
         <div class="up-next-row" data-show-id="${show.showId}">
           <div class="up-next-check up-next-check-done">🎉</div>
           <div class="up-next-info">
-            <div class="up-next-showname">${show.showName}</div>
+            <div class="up-next-showname">${escapeHtml(show.showName)}</div>
             <div class="up-next-episode">خلصت كل الحلقات المتاحة</div>
           </div>
-          <img class="up-next-poster" src="${poster}" alt="${show.showName}">
+          <img class="up-next-poster" src="${poster}" alt="${escapeHtml(show.showName)}">
         </div>
       `;
     }
@@ -179,11 +179,11 @@ async function loadUpNext() {
         <button class="up-next-check" title="علّم كمشاهَدة"
           onclick="markNextWatched('${show.showId}', ${show.nextSeason}, ${show.nextEpisode}, this)">✓</button>
         <div class="up-next-info">
-          <div class="up-next-showname">${show.showName}</div>
+          <div class="up-next-showname">${escapeHtml(show.showName)}</div>
           <div class="up-next-episode">موسم ${show.nextSeason} • حلقة ${show.nextEpisode}</div>
-          ${show.episodeName ? `<div class="up-next-title">${show.episodeName}</div>` : ""}
+          ${show.episodeName ? `<div class="up-next-title">${escapeHtml(show.episodeName)}</div>` : ""}
         </div>
-        <img class="up-next-poster" src="${poster}" alt="${show.showName}">
+        <img class="up-next-poster" src="${poster}" alt="${escapeHtml(show.showName)}">
       </div>
     `;
   }).join("");
@@ -228,7 +228,7 @@ async function loadStats() {
   if (stats.perShow.length > 0) {
     const rows = stats.perShow.map(s => `
       <tr>
-        <td>${s.showName}</td>
+        <td>${escapeHtml(s.showName)}</td>
         <td>${s.episodesWatched}</td>
       </tr>
     `).join("");

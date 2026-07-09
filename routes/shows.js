@@ -9,7 +9,7 @@ const Progress = require("../models/Progress");
 
 const router = express.Router();
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY || "01b494d03f636220f1a288d164afc5d6";
+const TMDB_API_KEY = process.env.TMDB_API_KEY || "YOUR_API_KEY";
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
 // middleware: لازم تكون مسجل دخول عشان تستخدم الراوت ده

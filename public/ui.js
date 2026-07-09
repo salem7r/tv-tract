@@ -1,5 +1,14 @@
 // public/ui.js
-// أدوات واجهة مشتركة بين الصفحات (إشعارات، تأكيد الحذف)
+// أدوات واجهة مشتركة بين الصفحات (إشعارات، تأكيد الحذف، حماية من XSS)
+
+// بنحول أي نص المستخدم بيتحكم فيه (زي اسم المستخدم) لنص آمن قبل ما نحطه في الصفحة
+// عشان محدش يقدر يحقن كود HTML/JavaScript ضار عن طريق اسم مستخدم أو أي مدخل تاني
+function escapeHtml(text) {
+  if (text === null || text === undefined) return "";
+  const div = document.createElement("div");
+  div.textContent = String(text);
+  return div.innerHTML;
+}
 
 function showToast(message, type = "success") {
   let container = document.getElementById("toastContainer");

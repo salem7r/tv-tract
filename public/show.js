@@ -58,7 +58,7 @@ async function loadShow() {
             data-episode="${ep.episode_number}"
             ${isWatched ? "checked" : ""}
             onchange="toggleWatched(this)">
-          <span>ح${ep.episode_number}: ${ep.name}</span>
+          <span>ح${ep.episode_number}: ${escapeHtml(ep.name)}</span>
         </div>
       `;
     }).join("");
