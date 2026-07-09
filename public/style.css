@@ -1,21 +1,22 @@
 /* ============================================
    TV Time Clone — Design System
-   هوية بصرية مستوحاة من دليل القنوات وعداد الشريط
+   ستايل مينيمال أسود/أبيض قريب من تطبيقات الستريمنج الحقيقية
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
 :root {
-  --bg: #12151a;
-  --surface: #1a1e26;
-  --surface-2: #222732;
-  --line: #2c323d;
-  --text: #f2ede4;
-  --text-muted: #8b92a0;
-  --amber: #e8a33d;
-  --amber-dim: #b77e2a;
-  --teal: #4fb6a8;
-  --coral: #d9614f;
+  --bg: #0a0a0a;
+  --surface: #161616;
+  --surface-2: #202020;
+  --line: rgba(255, 255, 255, 0.1);
+  --text: #ffffff;
+  --text-muted: #a3a3a3;
+  --accent: #ffffff;
+  --accent-contrast: #0a0a0a;
+  --star: #f5c518;
+  --teal: #3ddc97;
+  --coral: #ff5c5c;
   --radius: 10px;
 }
 
@@ -53,21 +54,11 @@ header {
 }
 
 header h1 {
-  font-size: 22px;
-  letter-spacing: 0.5px;
+  font-size: 21px;
+  letter-spacing: 0.3px;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-header h1::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--amber);
-  box-shadow: 0 0 8px var(--amber);
-  display: inline-block;
 }
 
 .back-link {
@@ -81,7 +72,7 @@ header h1::before {
   transition: all 0.15s ease;
 }
 
-.back-link:hover { color: var(--text); border-color: var(--amber); }
+.back-link:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
 
 #userInfo {
   display: flex;
@@ -149,7 +140,7 @@ input[type="text"], input[type="password"] {
 
 input[type="text"]:focus, input[type="password"]:focus {
   outline: none;
-  border-color: var(--amber);
+  border-color: rgba(255,255,255,0.4);
 }
 
 input::placeholder { color: var(--text-muted); }
@@ -171,7 +162,7 @@ input::placeholder { color: var(--text-muted); }
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
-.card:hover { border-color: var(--amber-dim); transform: translateY(-2px); }
+.card:hover { border-color: rgba(255,255,255,0.25); transform: translateY(-2px); }
 
 .card img {
   width: 100%;
@@ -195,17 +186,17 @@ input::placeholder { color: var(--text-muted); }
   padding: 9px;
   border: none;
   border-radius: 6px;
-  background: var(--amber);
-  color: #12151a;
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-family: 'Tajawal', sans-serif;
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
   margin-top: 6px;
-  transition: background 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
-.card button:hover { background: #f2b559; }
+.card button:hover { opacity: 0.82; }
 
 .card a { color: inherit; text-decoration: none; }
 
@@ -231,7 +222,7 @@ input::placeholder { color: var(--text-muted); }
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
   letter-spacing: 2px;
-  color: var(--amber);
+  color: var(--text-muted);
   text-transform: uppercase;
   margin-bottom: 24px;
 }
@@ -258,7 +249,7 @@ input::placeholder { color: var(--text-muted); }
   transition: all 0.15s ease;
 }
 
-.tab.active { background: var(--amber); color: #12151a; font-weight: 700; }
+.tab.active { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
 
 .hidden { display: none; }
 
@@ -266,19 +257,19 @@ form { display: flex; flex-direction: column; gap: 4px; }
 
 form button {
   padding: 13px;
-  background: var(--amber);
+  background: var(--accent);
   border: none;
   border-radius: 8px;
-  color: #12151a;
+  color: var(--accent-contrast);
   font-family: 'Tajawal', sans-serif;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   margin-top: 6px;
-  transition: background 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
-form button:hover { background: #f2b559; }
+form button:hover { opacity: 0.82; }
 
 #message { color: var(--coral); margin-top: 14px; font-size: 14px; min-height: 18px; }
 
@@ -289,7 +280,7 @@ form button:hover { background: #f2b559; }
   text-align: right;
 }
 
-/* ===== Stats (signature element: tape-counter digits) ===== */
+/* ===== Stats ===== */
 
 .stats-box {
   display: flex;
@@ -299,13 +290,7 @@ form button:hover { background: #f2b559; }
 }
 
 .stat-card {
-  background: repeating-linear-gradient(
-    180deg,
-    var(--surface-2) 0px,
-    var(--surface-2) 2px,
-    #1e232d 2px,
-    #1e232d 4px
-  );
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 20px;
@@ -318,8 +303,7 @@ form button:hover { background: #f2b559; }
   font-family: 'IBM Plex Mono', monospace;
   font-size: 32px;
   font-weight: 600;
-  color: var(--amber);
-  text-shadow: 0 0 12px rgba(232, 163, 61, 0.35);
+  color: var(--text);
   letter-spacing: 1px;
 }
 
@@ -360,11 +344,9 @@ form button:hover { background: #f2b559; }
 
 .stats-table td:last-child {
   font-family: 'IBM Plex Mono', monospace;
-  color: var(--amber);
-  font-weight: 600;
+  color: var(--text);
+  font-weight: 700;
 }
-
-/* ===== Show detail / episodes ===== */
 
 /* ===== Profile card ===== */
 
@@ -380,8 +362,8 @@ form button:hover { background: #f2b559; }
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--amber);
-  color: #12151a;
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-family: 'Changa', sans-serif;
   font-size: 26px;
   font-weight: 700;
@@ -410,7 +392,7 @@ form button:hover { background: #f2b559; }
   background: transparent;
 }
 
-/* ===== Show hero (خلفية صفحة المسلسل) ===== */
+/* ===== Show hero ===== */
 
 .show-hero {
   position: relative;
@@ -432,7 +414,7 @@ form button:hover { background: #f2b559; }
 .show-hero.hero-loaded .show-hero-img { opacity: 1; }
 
 .show-hero:not(.hero-loaded) {
-  background: linear-gradient(90deg, var(--surface-2) 25%, #2a303c 37%, var(--surface-2) 63%);
+  background: linear-gradient(90deg, var(--surface-2) 25%, #2a2a2a 37%, var(--surface-2) 63%);
   background-size: 400% 100%;
   animation: skeleton-loading 1.4s ease infinite;
 }
@@ -442,7 +424,7 @@ form button:hover { background: #f2b559; }
 .show-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(18,21,26,0.1) 0%, rgba(18,21,26,0.55) 55%, var(--bg) 100%);
+  background: linear-gradient(180deg, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.6) 55%, var(--bg) 100%);
 }
 
 .show-hero-content {
@@ -462,10 +444,10 @@ form button:hover { background: #f2b559; }
 .show-hero-meta {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 13px;
-  color: var(--amber);
+  color: var(--text-muted);
 }
 
-/* ===== Card meta (سنة وتقييم في نتايج البحث) ===== */
+/* ===== Card meta ===== */
 
 .card-meta {
   font-family: 'IBM Plex Mono', monospace;
@@ -482,7 +464,7 @@ form button:hover { background: #f2b559; }
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(90deg, var(--surface-2) 25%, #2a303c 37%, var(--surface-2) 63%);
+  background: linear-gradient(90deg, var(--surface-2) 25%, #2a2a2a 37%, var(--surface-2) 63%);
   background-size: 400% 100%;
   animation: skeleton-loading 1.4s ease infinite;
   border-radius: 6px;
@@ -529,10 +511,10 @@ body.has-bottom-nav main {
   transition: color 0.15s ease;
 }
 
-.bottom-nav-item.active { color: var(--amber); }
+.bottom-nav-item.active { color: var(--accent); }
 
 .bottom-nav-item:hover { color: var(--text); }
-.bottom-nav-item.active:hover { color: var(--amber); }
+.bottom-nav-item.active:hover { color: var(--accent); }
 
 .bottom-nav-indicator {
   position: absolute;
@@ -541,7 +523,7 @@ body.has-bottom-nav main {
   transform: translateX(-50%);
   width: 20px;
   height: 2px;
-  background: var(--amber);
+  background: var(--accent);
   border-radius: 2px;
 }
 
@@ -562,7 +544,7 @@ body.has-bottom-nav main {
 
 .bottom-nav-item.active .bottom-nav-label { font-weight: 700; }
 
-/* ===== Up Next list (قائمة المشاهدة) ===== */
+/* ===== Up Next list ===== */
 
 .up-next-list {
   display: flex;
@@ -581,7 +563,7 @@ body.has-bottom-nav main {
   transition: border-color 0.15s ease;
 }
 
-.up-next-row:hover { border-color: var(--amber-dim); }
+.up-next-row:hover { border-color: rgba(255,255,255,0.2); }
 
 .up-next-check {
   width: 42px;
@@ -600,11 +582,11 @@ body.has-bottom-nav main {
   transition: all 0.15s ease;
 }
 
-.up-next-check:hover { background: var(--teal); color: #12151a; }
+.up-next-check:hover { background: var(--teal); color: var(--accent-contrast); }
 .up-next-check:disabled { opacity: 0.6; cursor: default; }
 
 .up-next-check-done {
-  border-color: var(--amber);
+  border-color: var(--star);
   cursor: default;
   font-size: 20px;
 }
@@ -621,7 +603,7 @@ body.has-bottom-nav main {
 .up-next-episode {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 12.5px;
-  color: var(--amber);
+  color: var(--text-muted);
   margin-bottom: 2px;
 }
 
@@ -668,7 +650,7 @@ body.has-bottom-nav main {
   border-radius: 8px;
   font-size: 14px;
   font-family: 'Tajawal', sans-serif;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.25s ease, transform 0.25s ease;
@@ -713,7 +695,7 @@ body.has-bottom-nav main {
   color: var(--coral);
 }
 
-.card button.btn-danger:hover { background: var(--coral); color: #12151a; }
+.card button.btn-danger:hover { background: var(--coral); color: var(--accent-contrast); }
 
 .card button.btn-added {
   background: var(--surface-2);
@@ -721,7 +703,7 @@ body.has-bottom-nav main {
   cursor: default;
 }
 
-.card button.btn-added:hover { background: var(--surface-2); }
+.card button.btn-added:hover { background: var(--surface-2); opacity: 1; }
 
 .card button:disabled { opacity: 0.6; cursor: default; }
 
@@ -743,7 +725,7 @@ body.has-bottom-nav main {
 }
 
 .season-chevron {
-  color: var(--amber);
+  color: var(--text-muted);
   font-size: 13px;
   width: 12px;
 }
@@ -772,7 +754,7 @@ body.has-bottom-nav main {
   transition: all 0.15s ease;
 }
 
-.btn-mark-season:hover { background: var(--teal); color: #12151a; }
+.btn-mark-season:hover { background: var(--teal); color: var(--accent-contrast); }
 .btn-mark-season:disabled { opacity: 0.6; cursor: default; }
 
 .season-episodes { margin-top: 14px; }
@@ -787,7 +769,7 @@ body.has-bottom-nav main {
 
 .season-block h3 {
   font-size: 15px;
-  color: var(--amber);
+  color: var(--text);
   margin-bottom: 10px;
   font-family: 'IBM Plex Mono', monospace;
   letter-spacing: 0.5px;
@@ -805,7 +787,6 @@ body.has-bottom-nav main {
 
 .episode-row span { font-size: 14px; color: var(--text); }
 
-/* الشيك بوكس بشكل "تذكرة مقطوعة" بدل الشكل الافتراضي */
 .episode-row input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -831,7 +812,7 @@ body.has-bottom-nav main {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #12151a;
+  color: var(--accent-contrast);
   font-size: 14px;
   font-weight: bold;
 }
@@ -851,7 +832,6 @@ body.has-bottom-nav main {
   .auth-container { margin: 40px auto; padding: 28px 22px; }
 }
 
-/* احترام تفضيل تقليل الحركة */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
