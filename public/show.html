@@ -23,10 +23,32 @@
 
   <main>
     <div id="seasonsContainer"></div>
+
+    <section class="reviews-section">
+      <div class="reviews-header">
+        <h2>💬 المراجعات</h2>
+        <div class="reviews-sort">
+          <button class="sub-tab active" data-sort="newest" onclick="switchReviewSort('newest', this)">الأحدث</button>
+          <button class="sub-tab" data-sort="top" onclick="switchReviewSort('top', this)">الأعلى لايكات</button>
+        </div>
+      </div>
+
+      <div class="review-form">
+        <textarea id="reviewText" placeholder="اكتب رأيك في المسلسل..." maxlength="2000"></textarea>
+        <div class="review-form-actions">
+          <button type="button" class="btn-spoiler" onclick="markSelectionAsSpoiler()">🙈 علّم كسبويلر</button>
+          <button type="button" class="btn-submit-review" onclick="submitReview()">نشر المراجعة</button>
+        </div>
+        <p class="field-hint">حدد جزء من كلامك وبعدين دوس "علّم كسبويلر" عشان يتخفي لحد ما اللي بيقرأ يدوس عليه</p>
+      </div>
+
+      <div id="reviewsList" class="reviews-list"></div>
+    </section>
   </main>
 
 <script src="ui.js"></script>
 <script src="nav.js"></script>
 <script src="show.js"></script>
+<script src="reviews.js"></script>
 </body>
 </html>

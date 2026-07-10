@@ -88,21 +88,26 @@ async function loadShow() {
       const episodeRatingValue = episodeRatingMap[key] || null;
 
       return `
-        <label class="episode-row">
-          <input type="checkbox"
-            data-season="${season.season_number}"
-            data-episode="${ep.episode_number}"
-            ${isWatched ? "checked" : ""}
-            onchange="toggleWatched(this)">
-          <span>ح${ep.episode_number}: ${escapeHtml(ep.name)}</span>
-          <div class="episode-rating-wrap">
-            ${starRatingHtml(
-              episodeRatingValue,
-              v => `event.stopPropagation(); rateEpisode(${season.season_number}, ${ep.episode_number}, ${v}, this)`,
-              "sm"
-            )}
-          </div>
-        </label>
+        <div class="episode-item">
+          <label class="episode-row">
+            <input type="checkbox"
+              data-season="${season.season_number}"
+              data-episode="${ep.episode_number}"
+              ${isWatched ? "checked" : ""}
+              onchange="toggleWatched(this)">
+            <span>ح${ep.episode_number}: ${escapeHtml(ep.name)}</span>
+            <div class="episode-rating-wrap">
+              ${starRatingHtml(
+                episodeRatingValue,
+                v => `event.stopPropagation(); rateEpisode(${season.season_number}, ${ep.episode_number}, ${v}, this)`,
+                "sm"
+              )}
+            </div>
+            <button type="button" class="btn-episode-reviews" title="مراجعات الحلقة"
+              onclick="event.stopPropagation(); toggleEpisodeReviews(${season.season_number}, ${ep.episode_number}, this)">💬</button>
+          </label>
+          <div class="episode-reviews-panel hidden" id="epReviewsPanel-${key}"></div>
+        </div>
       `;
     }).join("");
 
