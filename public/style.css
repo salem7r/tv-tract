@@ -478,6 +478,75 @@ form button:hover { opacity: 0.82; }
 .skeleton-circle { width: 42px; height: 42px; min-width: 42px; border-radius: 50%; }
 .skeleton-thumb { width: 50px; height: 75px; border-radius: 6px; }
 
+/* ===== Star rating widget ===== */
+
+.star-rating {
+  display: inline-flex;
+  gap: 2px;
+  direction: ltr;
+  vertical-align: middle;
+}
+
+.star-slot {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.star-rating-sm .star-slot {
+  width: 15px;
+  height: 15px;
+  font-size: 14px;
+}
+
+.star-bg, .star-fill {
+  position: absolute;
+  inset: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.star-bg { color: var(--line); }
+.star-fill { color: var(--star); overflow: hidden; }
+
+.star-half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.star-half-left { left: 0; }
+.star-half-right { right: 0; }
+
+.community-rating {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.rating-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'Tajawal', sans-serif;
+}
+
 /* ===== Bottom navigation ===== */
 
 body.has-bottom-nav main {
@@ -783,17 +852,15 @@ body.has-bottom-nav main {
 
 .season-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
+  flex-direction: column;
   gap: 12px;
 }
 
-.season-header-title {
+.season-header-top {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
+  cursor: pointer;
 }
 
 .season-chevron {
@@ -811,6 +878,21 @@ body.has-bottom-nav main {
   background: var(--surface-2);
   padding: 3px 9px;
   border-radius: 20px;
+}
+
+.season-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.season-rating-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .btn-mark-season {
@@ -850,7 +932,7 @@ body.has-bottom-nav main {
 .episode-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   padding: 13px 4px;
   border-bottom: 1px dashed var(--line);
   cursor: pointer;
@@ -858,7 +940,17 @@ body.has-bottom-nav main {
 
 .episode-row:last-child { border-bottom: none; }
 
-.episode-row span { font-size: 14px; color: var(--text); }
+.episode-row span {
+  font-size: 14px;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.episode-rating-wrap { flex-shrink: 0; }
 
 .episode-row input[type="checkbox"] {
   appearance: none;

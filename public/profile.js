@@ -41,6 +41,10 @@ async function loadStats() {
       <div class="number">${stats.totalHours}</div>
       <div class="label">ساعة مشاهدة (تقريبًا)</div>
     </div>
+    <div class="stat-card">
+      <div class="number">${stats.avgRating !== null ? stats.avgRating : "—"}</div>
+      <div class="label">متوسط تقييماتك</div>
+    </div>
   `;
 
   let tableHtml = "";

@@ -1,5 +1,5 @@
 // public/show.js
-// منطق صفحة تفاصيل المسلسل: عرض المواسم والحلقات، وتعليم المشاهدة
+// منطق صفحة تفاصيل المسلسل: عرض المواسم والحلقات، التقدم، والتقييمات (مسلسل/موسم/حلقة)
 
 const params = new URLSearchParams(window.location.search);
 const showId = params.get("id");
@@ -17,15 +17,40 @@ async function loadShow() {
 
   populateHero(show);
 
-  // 2) تقدم المشاهدة الحالي
-  const progressRes = await fetch(`/api/shows/${showId}/progress`);
+  // 2) تقدم المشاهدة وتقييماتي الحالية (مسلسل/موسم/حلقة كلهم مع بعض)
+  const [progressRes, ratingsRes] = await Promise.all([
+    fetch(`/api/shows/${showId}/progress`),
+    fetch(`/api/shows/${showId}/ratings`)
+  ]);
   const progressList = await progressRes.json();
+  const ratingsList = await ratingsRes.json();
 
   const watchedSet = new Set(
     progressList
       .filter(p => p.watched)
       .map(p => `${p.seasonNumber}-${p.episodeNumber}`)
   );
+
+  // تقييم المسلسل ككل: seasonNumber و episodeNumber الاتنين null
+  const showRatingEntry = ratingsList.find(r => r.seasonNumber === null && r.episodeNumber === null);
+  renderShowRating(showRatingEntry ? showRatingEntry.rating : null);
+  loadCommunityRating(null, null, "communityRatingShow");
+
+  // تقييم كل موسم لوحده: seasonNumber محدد و episodeNumber null
+  const seasonRatingMap = {};
+  ratingsList.forEach(r => {
+    if (r.seasonNumber !== null && r.episodeNumber === null) {
+      seasonRatingMap[r.seasonNumber] = r.rating;
+    }
+  });
+
+  // تقييم كل حلقة لوحدها
+  const episodeRatingMap = {};
+  ratingsList.forEach(r => {
+    if (r.seasonNumber !== null && r.episodeNumber !== null) {
+      episodeRatingMap[`${r.seasonNumber}-${r.episodeNumber}`] = r.rating;
+    }
+  });
 
   container.innerHTML = "";
 
@@ -60,6 +85,8 @@ async function loadShow() {
     const episodesHtml = episodes.map(ep => {
       const key = `${season.season_number}-${ep.episode_number}`;
       const isWatched = watchedSet.has(key);
+      const episodeRatingValue = episodeRatingMap[key] || null;
+
       return `
         <label class="episode-row">
           <input type="checkbox"
@@ -68,6 +95,13 @@ async function loadShow() {
             ${isWatched ? "checked" : ""}
             onchange="toggleWatched(this)">
           <span>ح${ep.episode_number}: ${escapeHtml(ep.name)}</span>
+          <div class="episode-rating-wrap">
+            ${starRatingHtml(
+              episodeRatingValue,
+              v => `event.stopPropagation(); rateEpisode(${season.season_number}, ${ep.episode_number}, ${v}, this)`,
+              "sm"
+            )}
+          </div>
         </label>
       `;
     }).join("");
@@ -76,22 +110,36 @@ async function loadShow() {
     const isOpen = isFirst;
     isFirst = false;
 
+    const seasonRatingValue = seasonRatingMap[season.season_number] || null;
+
     block.innerHTML = `
-      <div class="season-header" onclick="toggleSeason(this)">
-        <div class="season-header-title">
+      <div class="season-header">
+        <div class="season-header-top" onclick="toggleSeason(this)">
           <span class="season-chevron">${isOpen ? "▾" : "▸"}</span>
           <h3>موسم ${season.season_number}</h3>
           <span class="season-count">${watchedCount}/${episodes.length}</span>
         </div>
-        <button class="btn-mark-season" onclick="event.stopPropagation(); markSeasonWatched(${season.season_number}, ${episodes.length}, this)">
-          علّم الموسم كله
-        </button>
+        <div class="season-header-actions">
+          <div class="season-rating-wrap">
+            ${starRatingHtml(
+              seasonRatingValue,
+              v => `rateSeason(${season.season_number}, ${v}, this)`,
+              "sm"
+            )}
+            <span class="community-rating" id="communityRating-s${season.season_number}"></span>
+          </div>
+          <button class="btn-mark-season" onclick="markSeasonWatched(${season.season_number}, ${episodes.length}, this)">
+            علّم الموسم كله
+          </button>
+        </div>
       </div>
       <div class="season-episodes" style="display: ${isOpen ? "block" : "none"};">
         ${episodesHtml || "<p>لا توجد حلقات</p>"}
       </div>
     `;
     container.appendChild(block);
+
+    loadCommunityRating(season.season_number, null, `communityRating-s${season.season_number}`);
   });
 }
 
@@ -123,8 +171,84 @@ function populateHero(show) {
   document.getElementById("showMeta").textContent = metaParts.join(" • ");
 }
 
-function toggleSeason(headerEl) {
-  const block = headerEl.parentElement;
+// ===== التقييمات =====
+
+function renderShowRating(value) {
+  const container = document.getElementById("showRating");
+  container.innerHTML = `
+    ${starRatingHtml(value, v => `rateShow(${v})`)}
+    <span class="community-rating" id="communityRatingShow">...</span>
+  `;
+}
+
+async function loadCommunityRating(seasonNumber, episodeNumber, targetId) {
+  let url = `/api/shows/${showId}/community-rating`;
+  const qs = [];
+  if (seasonNumber !== null && seasonNumber !== undefined) qs.push(`season=${seasonNumber}`);
+  if (episodeNumber !== null && episodeNumber !== undefined) qs.push(`episode=${episodeNumber}`);
+  if (qs.length) url += `?${qs.join("&")}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    el.textContent = data.count > 0
+      ? `متوسط المستخدمين: ${data.average} (${data.count})`
+      : "لسه محدش قيّم ده";
+  } catch (err) {
+    console.error("خطأ في جلب متوسط التقييم:", err);
+  }
+}
+
+async function rateShow(value) {
+  await fetch("/api/shows/rating", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ showId, seasonNumber: null, episodeNumber: null, rating: value })
+  });
+  showToast(`قيّمت المسلسل ${value}/10`);
+  renderShowRating(value);
+  loadCommunityRating(null, null, "communityRatingShow");
+}
+
+async function rateSeason(seasonNumber, value, btn) {
+  await fetch("/api/shows/rating", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ showId, seasonNumber, episodeNumber: null, rating: value })
+  });
+  showToast(`قيّمت موسم ${seasonNumber}: ${value}/10`);
+
+  const wrap = btn.closest(".season-rating-wrap");
+  wrap.querySelector(".star-rating").outerHTML = starRatingHtml(
+    value,
+    v => `rateSeason(${seasonNumber}, ${v}, this)`,
+    "sm"
+  );
+  loadCommunityRating(seasonNumber, null, `communityRating-s${seasonNumber}`);
+}
+
+async function rateEpisode(seasonNumber, episodeNumber, value, btn) {
+  await fetch("/api/shows/rating", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ showId, seasonNumber, episodeNumber, rating: value })
+  });
+  showToast(`قيّمت الحلقة ${value}/10`);
+
+  const wrap = btn.closest(".episode-rating-wrap");
+  wrap.querySelector(".star-rating").outerHTML = starRatingHtml(
+    value,
+    v => `event.stopPropagation(); rateEpisode(${seasonNumber}, ${episodeNumber}, ${v}, this)`,
+    "sm"
+  );
+}
+
+// ===== المواسم والحلقات =====
+
+function toggleSeason(topEl) {
+  const block = topEl.closest(".season-block");
   const episodesDiv = block.querySelector(".season-episodes");
   const chevron = block.querySelector(".season-chevron");
   const isOpen = episodesDiv.style.display !== "none";

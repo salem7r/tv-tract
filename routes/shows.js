@@ -6,6 +6,7 @@ const fetch = require("node-fetch");
 require("../db");
 const UserShow = require("../models/UserShow");
 const Progress = require("../models/Progress");
+const Rating = require("../models/Rating");
 
 const router = express.Router();
 
@@ -57,11 +58,18 @@ router.get("/stats/summary", requireAuth, async (req, res) => {
     const watchedEpisodes = await Progress.find({ userId, watched: true });
     const myShows = await UserShow.find({ userId });
 
+    // تقييماتك الشخصية للمسلسلات ككل (مش الحلقات) عشان نحسب متوسطك العام
+    const showRatings = await Rating.find({ userId, seasonNumber: null, episodeNumber: null });
+
     const totalEpisodes = watchedEpisodes.length;
 
     const AVG_EPISODE_MINUTES = 45;
     const totalMinutes = totalEpisodes * AVG_EPISODE_MINUTES;
     const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
+
+    const avgRating = showRatings.length > 0
+      ? Math.round((showRatings.reduce((sum, r) => sum + r.rating, 0) / showRatings.length) * 10) / 10
+      : null;
 
     const perShow = myShows.map(show => {
       const count = watchedEpisodes.filter(p => p.showId === show.showId).length;
@@ -77,6 +85,7 @@ router.get("/stats/summary", requireAuth, async (req, res) => {
       totalEpisodes,
       totalHours,
       totalShows: myShows.length,
+      avgRating,
       perShow
     });
   } catch (err) {
@@ -335,6 +344,74 @@ router.get("/:showId/progress", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "حصل خطأ في جلب التقدم" });
+  }
+});
+
+// 10) تقييم مسلسل ككل أو حلقة معينة
+// لو seasonNumber و episodeNumber جايين null، يبقى ده تقييم للمسلسل كله
+router.post("/rating", requireAuth, async (req, res) => {
+  try {
+    const { showId, seasonNumber, episodeNumber, rating } = req.body;
+    const userId = req.session.userId;
+
+    if (!rating || rating < 1 || rating > 10) {
+      return res.status(400).json({ error: "التقييم لازم يكون رقم من 1 لـ 10" });
+    }
+
+    const season = seasonNumber === undefined ? null : seasonNumber;
+    const episode = episodeNumber === undefined ? null : episodeNumber;
+
+    await Rating.findOneAndUpdate(
+      { userId, showId: String(showId), seasonNumber: season, episodeNumber: episode },
+      { userId, showId: String(showId), seasonNumber: season, episodeNumber: episode, rating },
+      { upsert: true, new: true }
+    );
+
+    res.json({ message: "تم حفظ التقييم" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ أثناء حفظ التقييم" });
+  }
+});
+
+// 11) جلب كل تقييماتي لمسلسل معين (تقييم المسلسل ككل + كل موسم + كل حلقة)
+router.get("/:showId/ratings", requireAuth, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const { showId } = req.params;
+    const items = await Rating.find({ userId, showId: String(showId) });
+    res.json(items);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب التقييمات" });
+  }
+});
+
+// 12) متوسط تقييم كل المستخدمين (مش تقييمك إنت بس) لمسلسل، أو لموسم معين، أو لحلقة معينة
+// أمثلة: /api/shows/1396/community-rating              -> متوسط المسلسل ككل
+//        /api/shows/1396/community-rating?season=2      -> متوسط الموسم التاني
+//        /api/shows/1396/community-rating?season=2&episode=5 -> متوسط حلقة معينة
+router.get("/:showId/community-rating", requireAuth, async (req, res) => {
+  try {
+    const { showId } = req.params;
+    const seasonNumber = req.query.season ? Number(req.query.season) : null;
+    const episodeNumber = req.query.episode ? Number(req.query.episode) : null;
+
+    const items = await Rating.find({
+      showId: String(showId),
+      seasonNumber,
+      episodeNumber
+    });
+
+    if (items.length === 0) {
+      return res.json({ average: null, count: 0 });
+    }
+
+    const average = Math.round((items.reduce((sum, r) => sum + r.rating, 0) / items.length) * 10) / 10;
+    res.json({ average, count: items.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب متوسط التقييم" });
   }
 });
 

@@ -73,3 +73,31 @@ function skeletonSeasons(count = 2) {
     </div>
   `).join("");
 }
+
+// ===== Star rating widget =====
+// مقياس 1-10 بس معروض كـ 5 نجوم بدقة نص نجمة (كل نجمة = نقطتين)
+// currentValue: رقم من 1 لـ 10 أو null لو لسه معندكش تقييم
+// onClickValue: دالة بتاخد رقم (1-10) وترجع الـ onclick attribute كنص، زي: v => `rateShow(${v})`
+function starRatingHtml(currentValue, onClickValue, size = "md") {
+  const sizeClass = size === "sm" ? "star-rating-sm" : "";
+  let stars = "";
+
+  for (let i = 0; i < 5; i++) {
+    const leftVal = i * 2 + 1;
+    const rightVal = i * 2 + 2;
+    const fillPercent = currentValue == null
+      ? 0
+      : Math.max(0, Math.min(100, (currentValue - i * 2) * 50));
+
+    stars += `
+      <span class="star-slot">
+        <span class="star-bg">★</span>
+        <span class="star-fill" style="width:${fillPercent}%">★</span>
+        <button type="button" class="star-half star-half-left" onclick="${onClickValue(leftVal)}" aria-label="${leftVal} من 10"></button>
+        <button type="button" class="star-half star-half-right" onclick="${onClickValue(rightVal)}" aria-label="${rightVal} من 10"></button>
+      </span>
+    `;
+  }
+
+  return `<div class="star-rating ${sizeClass}">${stars}</div>`;
+}
