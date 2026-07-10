@@ -1,6 +1,10 @@
 // public/app.js
 // منطق تبويب "مسلسلاتي": قائمة المشاهدة، وإدارة كل مسلسلاتي
 
+// بنخزن هنا نسبة تقدم كل مسلسل (بتتجمع من loadUpNext) عشان نعرضها كشريط تقدم
+// في كروت "كل مسلسلاتي" من غير ما نحتاج نطلب البيانات مرتين
+let showProgressMap = {};
+
 async function checkAuth() {
   const res = await fetch("/api/auth/me");
   const data = await res.json();
@@ -31,12 +35,24 @@ async function loadMyShows() {
     const poster = show.posterPath
       ? `https://image.tmdb.org/t/p/w200${show.posterPath}`
       : "https://via.placeholder.com/150x220?text=No+Image";
+
+    const progress = showProgressMap[show.showId];
+    let progressHtml = "";
+    if (progress && progress.total > 0) {
+      const percent = Math.min(100, Math.round((progress.watched / progress.total) * 100));
+      progressHtml = `
+        <div class="card-progress-label">${progress.watched}/${progress.total}</div>
+        <div class="card-progress"><div class="card-progress-fill" style="width:${percent}%"></div></div>
+      `;
+    }
+
     return `
       <div class="card">
         <a href="/show.html?id=${show.showId}&name=${encodeURIComponent(show.showName)}">
-          <img src="${poster}" alt="${escapeHtml(show.showName)}">
+          <img src="${poster}" alt="${escapeHtml(show.showName)}" loading="lazy">
           <h3>${escapeHtml(show.showName)}</h3>
         </a>
+        ${progressHtml}
         <button class="btn-danger" onclick="removeShow('${show.id}', ${JSON.stringify(show.showName)})">حذف من قائمتي</button>
       </div>
     `;
@@ -59,6 +75,14 @@ async function loadUpNext() {
 
   const res = await fetch("/api/shows/my/next-episodes");
   const shows = await res.json();
+
+  showProgressMap = {};
+  shows.forEach(show => {
+    showProgressMap[show.showId] = {
+      total: show.totalEpisodes || 0,
+      watched: show.watchedEpisodes || 0
+    };
+  });
 
   if (shows.length === 0) {
     container.innerHTML = `
@@ -84,7 +108,7 @@ async function loadUpNext() {
             <div class="up-next-showname">${escapeHtml(show.showName)}</div>
             <div class="up-next-episode">خلصت كل الحلقات المتاحة</div>
           </div>
-          <img class="up-next-poster" src="${poster}" alt="${escapeHtml(show.showName)}">
+          <img class="up-next-poster" src="${poster}" alt="${escapeHtml(show.showName)}" loading="lazy">
         </div>
       `;
     }
@@ -98,7 +122,7 @@ async function loadUpNext() {
           <div class="up-next-episode">موسم ${show.nextSeason} • حلقة ${show.nextEpisode}</div>
           ${show.episodeName ? `<div class="up-next-title">${escapeHtml(show.episodeName)}</div>` : ""}
         </div>
-        <img class="up-next-poster" src="${poster}" alt="${escapeHtml(show.showName)}">
+        <img class="up-next-poster" src="${poster}" alt="${escapeHtml(show.showName)}" loading="lazy">
       </div>
     `;
   }).join("");
@@ -115,7 +139,8 @@ async function markNextWatched(showId, seasonNumber, episodeNumber, btn) {
   });
 
   showToast(`تم تعليم موسم ${seasonNumber} حلقة ${episodeNumber} كمشاهَدة`);
-  loadUpNext();
+  await loadUpNext();
+  loadMyShows();
 }
 
 let upcomingLoaded = false;
@@ -182,7 +207,7 @@ async function loadUpcoming() {
           <div class="up-next-episode">موسم ${item.seasonNumber} • حلقة ${item.episodeNumber}</div>
           ${item.episodeName ? `<div class="up-next-title">${escapeHtml(item.episodeName)}</div>` : ""}
         </div>
-        <img class="up-next-poster" src="${poster}" alt="${escapeHtml(item.showName)}">
+        <img class="up-next-poster" src="${poster}" alt="${escapeHtml(item.showName)}" loading="lazy">
       </div>
     `;
   }).join("");
@@ -190,8 +215,8 @@ async function loadUpcoming() {
 
 async function init() {
   await checkAuth();
+  await loadUpNext(); // لازم تخلص الأول عشان تجهز خريطة التقدم لكروت "كل مسلسلاتي"
   loadMyShows();
-  loadUpNext();
   renderBottomNav("shows");
 }
 

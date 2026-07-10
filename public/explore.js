@@ -1,5 +1,5 @@
 // public/explore.js
-// منطق صفحة الاستكشاف: البحث عن مسلسلات وإضافتها لقائمتي
+// منطق صفحة الاستكشاف: عرض الرائج، البحث عن مسلسلات، وإضافتها لقائمتي
 
 let myShowIds = new Set();
 
@@ -17,13 +17,7 @@ async function loadMyShowIds() {
   myShowIds = new Set(shows.map(s => String(s.showId)));
 }
 
-async function searchShows(query) {
-  const container = document.getElementById("searchResults");
-  container.innerHTML = skeletonGrid(6);
-
-  const res = await fetch(`/api/shows/search?query=${encodeURIComponent(query)}`);
-  const results = await res.json();
-
+function renderShowCards(results, container) {
   if (!results.length) {
     container.innerHTML = "<p>مفيش نتايج</p>";
     return;
@@ -50,13 +44,31 @@ async function searchShows(query) {
 
     return `
       <div class="card">
-        <img src="${poster}" alt="${escapeHtml(show.name)}">
+        <img src="${poster}" alt="${escapeHtml(show.name)}" loading="lazy">
         <h3>${escapeHtml(show.name)}</h3>
         ${metaHtml}
         ${buttonHtml}
       </div>
     `;
   }).join("");
+}
+
+async function loadTrending() {
+  const container = document.getElementById("searchResults");
+  container.innerHTML = skeletonGrid(6);
+
+  const res = await fetch("/api/shows/trending");
+  const results = await res.json();
+  renderShowCards(results, container);
+}
+
+async function searchShows(query) {
+  const container = document.getElementById("searchResults");
+  container.innerHTML = skeletonGrid(6);
+
+  const res = await fetch(`/api/shows/search?query=${encodeURIComponent(query)}`);
+  const results = await res.json();
+  renderShowCards(results, container);
 }
 
 async function addToMyShows(showId, showName, posterPath, btn) {
@@ -86,16 +98,22 @@ let searchTimer;
 document.getElementById("searchBox").addEventListener("input", (e) => {
   clearTimeout(searchTimer);
   const query = e.target.value.trim();
+  const label = document.getElementById("resultsLabel");
+
   if (query.length < 2) {
-    document.getElementById("searchResults").innerHTML = "";
+    label.classList.remove("hidden");
+    loadTrending();
     return;
   }
+
+  label.classList.add("hidden");
   searchTimer = setTimeout(() => searchShows(query), 400);
 });
 
 async function init() {
   await checkAuth();
   await loadMyShowIds();
+  loadTrending();
   renderBottomNav("explore");
 }
 

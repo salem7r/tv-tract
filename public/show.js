@@ -38,9 +38,16 @@ async function loadShow() {
 
   let isFirst = true;
 
-  for (const season of seasons) {
-    const seasonRes = await fetch(`/api/shows/${showId}/season/${season.season_number}`);
-    const seasonData = await seasonRes.json();
+  // بنجيب كل المواسم مع بعض بالتوازي بدل ما ننتظر كل موسم لوحده،
+  // ده بيسرّع فتح الصفحة بشكل كبير للمسلسلات اللي فيها مواسم كتير
+  const seasonDataList = await Promise.all(
+    seasons.map(season =>
+      fetch(`/api/shows/${showId}/season/${season.season_number}`).then(r => r.json())
+    )
+  );
+
+  seasons.forEach((season, index) => {
+    const seasonData = seasonDataList[index];
     const episodes = seasonData.episodes || [];
 
     const watchedCount = episodes.filter(ep =>
@@ -54,14 +61,14 @@ async function loadShow() {
       const key = `${season.season_number}-${ep.episode_number}`;
       const isWatched = watchedSet.has(key);
       return `
-        <div class="episode-row">
+        <label class="episode-row">
           <input type="checkbox"
             data-season="${season.season_number}"
             data-episode="${ep.episode_number}"
             ${isWatched ? "checked" : ""}
             onchange="toggleWatched(this)">
           <span>ح${ep.episode_number}: ${escapeHtml(ep.name)}</span>
-        </div>
+        </label>
       `;
     }).join("");
 
@@ -85,7 +92,7 @@ async function loadShow() {
       </div>
     `;
     container.appendChild(block);
-  }
+  });
 }
 
 function populateHero(show) {

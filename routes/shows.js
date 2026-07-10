@@ -36,6 +36,19 @@ router.get("/search", async (req, res) => {
   }
 });
 
+// 1.5) المسلسلات الرائجة (لعرضها في استكشف قبل ما اليوزر يكتب أي حاجة)
+router.get("/trending", async (req, res) => {
+  try {
+    const url = `${TMDB_BASE}/trending/tv/week?api_key=${TMDB_API_KEY}&language=ar`;
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data.results || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب المسلسلات الرائجة" });
+  }
+});
+
 // 2) إحصائيات المستخدم (لازم تكون قبل /:showId عشان الترتيب)
 router.get("/stats/summary", requireAuth, async (req, res) => {
   try {
@@ -160,7 +173,9 @@ router.get("/my/next-episodes", requireAuth, async (req, res) => {
           completed: nextSeason === null,
           nextSeason,
           nextEpisode,
-          episodeName
+          episodeName,
+          totalEpisodes: seasons.reduce((sum, s) => sum + (s.episode_count || 0), 0),
+          watchedEpisodes: watched.length
         };
       } catch (err) {
         console.error(`خطأ في حساب الحلقة الجاية للمسلسل ${show.showId}:`, err.message);
@@ -172,6 +187,8 @@ router.get("/my/next-episodes", requireAuth, async (req, res) => {
           nextSeason: null,
           nextEpisode: null,
           episodeName: null,
+          totalEpisodes: 0,
+          watchedEpisodes: 0,
           error: true
         };
       }
