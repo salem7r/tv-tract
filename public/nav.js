@@ -9,8 +9,8 @@ function renderBottomNav(activeTab) {
   };
 
   const items = [
-    { key: "explore", label: "استكشف", href: "/explore.html" },
     { key: "shows", label: "مسلسلاتي", href: "/index.html" },
+    { key: "explore", label: "استكشف", href: "/explore.html" },
     { key: "profile", label: "حسابي", href: "/profile.html" }
   ];
 
