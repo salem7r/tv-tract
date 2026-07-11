@@ -95,19 +95,65 @@ router.get("/stats/summary", requireAuth, async (req, res) => {
 });
 
 // 3) جلب كل مسلسلاتي
+// ?status=planning|watching|completed|dropped للفلترة بالحالة
+// ?favorite=true لعرض المفضلة بس
 router.get("/my/list", requireAuth, async (req, res) => {
   try {
-    const shows = await UserShow.find({ userId: req.session.userId });
+    const filter = { userId: req.session.userId };
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.favorite === "true") filter.isFavorite = true;
+
+    const shows = await UserShow.find(filter).sort({ createdAt: -1 });
     res.json(shows.map(s => ({
       id: s._id.toString(),
       userId: s.userId,
       showId: s.showId,
       showName: s.showName,
-      posterPath: s.posterPath
+      posterPath: s.posterPath,
+      status: s.status,
+      isFavorite: s.isFavorite
     })));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "حصل خطأ في جلب مسلسلاتك" });
+  }
+});
+
+// 3.5) ملخص عدد المسلسلات في كل حالة (لعرض الأرقام في تابات صفحة "قوائمي")
+router.get("/my/lists-overview", requireAuth, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const all = await UserShow.find({ userId });
+
+    const counts = { planning: 0, watching: 0, completed: 0, dropped: 0, favorite: 0, total: all.length };
+    all.forEach(s => {
+      if (counts[s.status] !== undefined) counts[s.status]++;
+      if (s.isFavorite) counts.favorite++;
+    });
+
+    res.json(counts);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب ملخص القوائم" });
+  }
+});
+
+// 3.6) حالة مسلسل معين بالنسبة لليوزر الحالي (مضاف؟ حالته إيه؟ مفضل؟)
+// بيستخدمها زرار الحالة في صفحة تفاصيل المسلسل
+router.get("/my-shows/for/:showId", requireAuth, async (req, res) => {
+  try {
+    const entry = await UserShow.findOne({ userId: req.session.userId, showId: String(req.params.showId) });
+    if (!entry) return res.json({ inList: false });
+
+    res.json({
+      inList: true,
+      id: entry._id.toString(),
+      status: entry.status,
+      isFavorite: entry.isFavorite
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب حالة المسلسل" });
   }
 });
 
@@ -312,6 +358,36 @@ router.delete("/my-shows/:id", requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "حصل خطأ أثناء الحذف" });
+  }
+});
+
+// 7.5) تعديل حالة المشاهدة و/أو المفضلة لمسلسل في قائمتي
+router.patch("/my-shows/:id", requireAuth, async (req, res) => {
+  try {
+    const { status, isFavorite } = req.body;
+    const update = {};
+
+    if (status !== undefined) {
+      const validStatuses = ["planning", "watching", "completed", "dropped"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: "حالة غير معروفة" });
+      }
+      update.status = status;
+    }
+
+    if (isFavorite !== undefined) update.isFavorite = !!isFavorite;
+
+    const entry = await UserShow.findOneAndUpdate(
+      { _id: req.params.id, userId: req.session.userId },
+      update,
+      { new: true }
+    );
+    if (!entry) return res.status(404).json({ error: "المسلسل مش في قائمتك" });
+
+    res.json({ message: "تم التحديث", status: entry.status, isFavorite: entry.isFavorite });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ أثناء التحديث" });
   }
 });
 

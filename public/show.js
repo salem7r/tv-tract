@@ -4,6 +4,7 @@
 const params = new URLSearchParams(window.location.search);
 const showId = params.get("id");
 const showName = params.get("name") || "المسلسل";
+let showPosterPath = null; // بيتحدد لما تفاصيل المسلسل توصل، ومستخدم في watch-status.js
 
 document.getElementById("showTitle").textContent = showName;
 
@@ -151,6 +152,8 @@ async function loadShow() {
 function populateHero(show) {
   const heroEl = document.getElementById("showHero");
   const imgEl = document.getElementById("heroBackdrop");
+
+  showPosterPath = show.poster_path || null;
 
   const backdropPath = show.backdrop_path || show.poster_path;
   if (backdropPath) {

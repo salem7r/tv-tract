@@ -1,5 +1,5 @@
 // public/profile.js
-// منطق صفحة الحساب: بيانات اليوزر، الإحصائيات، تسجيل الخروج
+// منطق صفحة الحساب: بيانات اليوزر، الإحصائيات، تسجيل الخروج، وقسم "قوائمي" (زي Letterboxd)
 
 async function loadProfile() {
   const res = await fetch("/api/auth/me");
@@ -70,53 +70,117 @@ async function loadStats() {
   document.getElementById("statsTable").innerHTML = tableHtml;
 }
 
-// بنخزن هنا نسبة تقدم كل مسلسل (من راوت الحلقة الجاية) عشان نعرضها كشريط تقدم في الكروت
-let showProgressMap = {};
+// ===== قوائمي: تابات الحالة (المفضلة/سأشاهد لاحقاً/أشاهد الآن/أنهيت/توقفت) + القوائم الخاصة =====
 
-async function loadShowProgress() {
-  const res = await fetch("/api/shows/my/next-episodes");
-  const shows = await res.json();
-  showProgressMap = {};
-  shows.forEach(show => {
-    showProgressMap[show.showId] = {
-      total: show.totalEpisodes || 0,
-      watched: show.watchedEpisodes || 0
-    };
-  });
+const STATUS_TABS = [
+  { key: "favorite", label: "❤️ المفضلة" },
+  { key: "planning", label: "سأشاهد لاحقًا" },
+  { key: "watching", label: "أشاهد الآن" },
+  { key: "completed", label: "أنهيت" },
+  { key: "dropped", label: "توقفت" }
+];
+
+let activeListTab = "planning";
+
+async function loadListsTabs() {
+  const [overview, customLists] = await Promise.all([
+    fetch("/api/shows/my/lists-overview").then(r => r.json()),
+    fetch("/api/lists").then(r => r.json())
+  ]);
+
+  const container = document.getElementById("listsTabs");
+
+  const statusTabsHtml = STATUS_TABS.map(tab => {
+    const count = overview[tab.key] || 0;
+    return `
+      <button class="sub-tab ${activeListTab === tab.key ? "active" : ""}" onclick="switchListTab('${tab.key}', this)">
+        ${tab.label} <span class="list-tab-count">${count}</span>
+      </button>
+    `;
+  }).join("");
+
+  const customTabsHtml = customLists.map(l => `
+    <button class="sub-tab ${activeListTab === "custom:" + l.id ? "active" : ""}" onclick="switchListTab('custom:${l.id}', this)">
+      🗂️ ${escapeHtml(l.name)} <span class="list-tab-count">${l.itemsCount}</span>
+    </button>
+  `).join("");
+
+  container.innerHTML = `
+    ${statusTabsHtml}${customTabsHtml}
+    <button class="sub-tab list-tab-new" onclick="promptNewList()">＋ قائمة جديدة</button>
+  `;
+
+  loadListContent();
 }
 
-async function loadMyShows() {
-  const container = document.getElementById("myShows");
+function switchListTab(key, btn) {
+  activeListTab = key;
+  document.querySelectorAll("#listsTabs .sub-tab").forEach(t => t.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  loadListContent();
+}
+
+async function promptNewList() {
+  const name = window.prompt("اسم القائمة الجديدة:");
+  if (!name || !name.trim()) return;
+
+  const res = await fetch("/api/lists", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: name.trim() })
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    showToast(`تم إنشاء "${data.name}"`);
+    activeListTab = `custom:${data.id}`;
+    loadListsTabs();
+  } else {
+    showToast(data.error, "error");
+  }
+}
+
+async function loadListContent() {
+  const container = document.getElementById("listsContent");
   container.innerHTML = skeletonGrid(4);
 
-  const res = await fetch("/api/shows/my/list");
-  const shows = await res.json();
+  let items = [];
+  let isCustomList = false;
+  let customListId = null;
 
-  if (shows.length === 0) {
+  if (activeListTab.startsWith("custom:")) {
+    isCustomList = true;
+    customListId = activeListTab.split(":")[1];
+    const res = await fetch(`/api/lists/${customListId}`);
+    const data = await res.json();
+    items = data.items || [];
+  } else {
+    const qs = activeListTab === "favorite" ? "favorite=true" : `status=${activeListTab}`;
+    const res = await fetch(`/api/shows/my/list?${qs}`);
+    items = await res.json();
+  }
+
+  if (items.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">📺</div>
-        <p>لسه معندكش مسلسلات مضافة</p>
-        <p class="empty-state-hint">روح لتبويب "استكشف" ودور على مسلسل وضيفه</p>
+        <div class="empty-state-icon">🎬</div>
+        <p>مفيش مسلسلات في القائمة دي لسه</p>
+        <p class="empty-state-hint">تقدر تضيف مسلسلات من صفحة المسلسل نفسه</p>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = shows.map(show => {
+  container.innerHTML = items.map(show => {
     const poster = show.posterPath
       ? `https://image.tmdb.org/t/p/w200${show.posterPath}`
       : "https://via.placeholder.com/150x220?text=No+Image";
 
-    const progress = showProgressMap[show.showId];
-    let progressHtml = "";
-    if (progress && progress.total > 0) {
-      const percent = Math.min(100, Math.round((progress.watched / progress.total) * 100));
-      progressHtml = `
-        <div class="card-progress-label">${progress.watched}/${progress.total}</div>
-        <div class="card-progress"><div class="card-progress-fill" style="width:${percent}%"></div></div>
-      `;
-    }
+    const removeAction = isCustomList
+      ? `removeFromCustomList('${customListId}', '${show.showId}')`
+      : `removeShow('${show.id}', ${JSON.stringify(show.showName)})`;
+
+    const favoriteChip = !isCustomList && show.isFavorite ? `<span class="chip chip-gold">❤️ مفضل</span>` : "";
 
     return `
       <div class="card">
@@ -125,12 +189,12 @@ async function loadMyShows() {
             <img src="${poster}" alt="${escapeHtml(show.showName)}" loading="lazy">
             <div class="card-poster-overlay">
               <h3>${escapeHtml(show.showName)}</h3>
+              ${favoriteChip ? `<div class="card-meta">${favoriteChip}</div>` : ""}
             </div>
           </div>
         </a>
         <div class="card-actions">
-          ${progressHtml}
-          <button class="btn-danger" onclick="removeShow('${show.id}', ${JSON.stringify(show.showName)})">حذف من قائمتي</button>
+          <button class="btn-danger" onclick="${removeAction}">${isCustomList ? "حذف من القائمة" : "حذف من قائمتي"}</button>
         </div>
       </div>
     `;
@@ -143,14 +207,22 @@ async function removeShow(id, showName) {
 
   await fetch(`/api/shows/my-shows/${id}`, { method: "DELETE" });
   showToast("تم الحذف");
-  loadMyShows();
+  loadListsTabs();
+}
+
+async function removeFromCustomList(listId, showId) {
+  const confirmed = confirmAction("متأكد إنك عايز تحذف المسلسل من القائمة دي؟");
+  if (!confirmed) return;
+
+  await fetch(`/api/lists/${listId}/items/${showId}`, { method: "DELETE" });
+  showToast("تم الحذف من القائمة");
+  loadListsTabs();
 }
 
 async function init() {
   await loadProfile();
   loadStats();
-  await loadShowProgress();
-  loadMyShows();
+  loadListsTabs();
   renderBottomNav("profile");
 }
 
