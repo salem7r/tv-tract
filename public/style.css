@@ -1,6 +1,7 @@
 /* ============================================
-   TV Time Clone — Design System v2 "On Air"
-   استوديو بث ليلي: نقطة إشارة نابضة، بوسترات بعنوان فوقها، تاج سبويلر كأنه مقطع متلف
+   TV Time Clone — Design System v3 "Test Pattern"
+   هوية مبنية على ألوان بار البث الكلاسيكي (Color Bars)، أزرار زي الريموت كنترول،
+   وتكستشر سكان لاين خفيف يفتكرك بشاشة تليفزيون قديمة
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Changa:wght@600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -8,28 +9,37 @@
 :root {
   color-scheme: dark;
 
-  --bg: #0b0d12;
-  --surface: #14171d;
-  --surface-2: #1b1f27;
-  --surface-3: #242938;
+  --bg: #121014;
+  --surface: #1a171c;
+  --surface-2: #221f26;
+  --surface-3: #2b2731;
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.18);
 
-  --text: #f3f5f7;
-  --text-muted: #8a93a3;
+  --text: #f2efe8;
+  --text-muted: #948e94;
 
   --accent: #ffffff;
-  --accent-contrast: #0b0d12;
+  --accent-contrast: #121014;
 
-  --signal: #ff4e32;         /* لمبة البث: البراند، التحديد، الحالة النشطة */
-  --signal-dim: rgba(255, 78, 50, 0.16);
-  --frequency: #2fe0b8;      /* تم المشاهدة / التقدم */
-  --star: #f5c244;           /* التقييمات */
-  --coral: #ff5c6c;          /* حذف/تحذير/لايك */
+  /* ألوان بار البث — كل لون له وظيفة واحدة بس */
+  --bar-yellow:  #e3b93f;
+  --bar-cyan:    #3fc6ba;
+  --bar-green:   #5cae6b;
+  --bar-magenta: #d95c95;
+  --bar-red:     #e85a3b;
+  --bar-blue:    #4c74c9;
+  --bars: linear-gradient(90deg, var(--bar-yellow), var(--bar-cyan), var(--bar-green), var(--bar-magenta), var(--bar-red), var(--bar-blue));
+
+  --signal: var(--bar-red);       /* البراند، الأون-اير، الأزرار الأساسية */
+  --signal-dim: rgba(232, 90, 59, 0.16);
+  --frequency: var(--bar-cyan);   /* تم المشاهدة / التقدم */
+  --star: var(--bar-yellow);      /* التقييمات */
+  --coral: var(--bar-magenta);    /* حذف / لايك */
 
   --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 22px;
+  --radius: 12px;
+  --radius-lg: 20px;
   --radius-pill: 999px;
 }
 
@@ -40,8 +50,7 @@
 body {
   font-family: 'Tajawal', Arial, sans-serif;
   background:
-    radial-gradient(1100px 550px at 12% -8%, rgba(255, 78, 50, 0.12), transparent 60%),
-    radial-gradient(900px 500px at 105% 0%, rgba(47, 224, 184, 0.09), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0px, transparent 1px, transparent 3px),
     var(--bg);
   background-attachment: fixed;
   color: var(--text);
@@ -63,13 +72,15 @@ h1, h2, h3 {
   border-radius: 4px;
 }
 
-/* ===== Header ===== */
+/* ===== Header — شريط بار البث ثابت فوق ===== */
 
 header {
-  background: rgba(20, 23, 29, 0.72);
+  background: rgba(26, 23, 28, 0.78);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   border-bottom: 1px solid var(--line);
+  border-top: 5px solid;
+  border-image: var(--bars) 1;
   padding: 16px 30px;
   display: flex;
   justify-content: space-between;
@@ -93,8 +104,7 @@ header h1 {
   50% { opacity: 0.5; transform: scale(0.75); }
 }
 
-header h1::before,
-.auth-container h1::before {
+header h1::before {
   content: "";
   width: 8px;
   height: 8px;
@@ -132,7 +142,7 @@ header h1::before,
   border: 1px solid var(--line);
   color: var(--text-muted);
   padding: 8px 14px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-family: 'Tajawal', sans-serif;
   font-size: 13px;
@@ -145,20 +155,31 @@ header h1::before,
 
 main {
   max-width: 1080px;
-  margin: 32px auto;
+  margin: 34px auto;
   padding: 0 20px 60px;
 }
 
 section { margin-bottom: 10px; }
 
 section h2 {
-  font-size: 19px;
-  margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--line);
+  position: relative;
+  font-size: 22px;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+section h2::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 44px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--signal);
 }
 
 hr {
@@ -174,7 +195,7 @@ input[type="text"], input[type="password"], textarea {
   padding: 13px 16px;
   font-size: 15px;
   font-family: 'Tajawal', sans-serif;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--text);
@@ -190,12 +211,27 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
 
 input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
+/* ===== Tactile buttons — زي أزرار الريموت كنترول ===== */
+
+form button, .card-actions button, .card button, .btn-submit-review, .btn-mark-season {
+  border-radius: var(--radius-sm);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.15s ease;
+}
+
+form button:active, .card-actions button:active, .card button:active,
+.btn-submit-review:active, .btn-mark-season:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.4);
+}
+
 /* ===== Grid & Cards ===== */
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 18px;
+  perspective: 900px;
 }
 
 .card {
@@ -208,7 +244,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 
 .card:hover {
   border-color: var(--line-strong);
-  transform: translateY(-5px);
+  transform: translateY(-5px) rotateX(2deg);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
 }
 
@@ -233,7 +269,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   position: absolute;
   inset: auto 0 0 0;
   padding: 34px 12px 10px;
-  background: linear-gradient(180deg, transparent 0%, rgba(11, 13, 18, 0.6) 45%, rgba(11, 13, 18, 0.96) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(18, 16, 20, 0.6) 45%, rgba(18, 16, 20, 0.96) 100%);
 }
 
 .card-poster-overlay h3 {
@@ -266,7 +302,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   white-space: nowrap;
 }
 
-.chip-gold { background: rgba(245, 194, 68, 0.2); color: var(--star); }
+.chip-gold { background: rgba(227, 185, 63, 0.2); color: var(--star); }
 
 .card-actions { padding: 12px; }
 
@@ -274,25 +310,22 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   width: 100%;
   padding: 10px;
   border: none;
-  border-radius: var(--radius-pill);
   background: var(--accent);
   color: var(--accent-contrast);
   font-family: 'Tajawal', sans-serif;
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
-  margin-top: 0;
-  transition: opacity 0.15s ease, transform 0.1s ease;
 }
 
 .card-actions button:hover, .card button:hover { opacity: 0.85; }
-.card-actions button:active, .card button:active { transform: scale(0.97); }
 
 .card a { color: inherit; text-decoration: none; display: block; }
 
 /* ===== Auth pages ===== */
 
 .auth-container {
+  position: relative;
   max-width: 420px;
   margin: 100px auto;
   background: var(--surface);
@@ -301,12 +334,35 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
   border-radius: var(--radius-lg);
   text-align: center;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.auth-container::before {
+  content: "";
+  display: block;
+  height: 5px;
+  margin: -40px -34px 34px;
+  background: var(--bars);
 }
 
 .auth-container h1 {
   font-size: 27px;
   justify-content: center;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-container h1::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 4px var(--signal-dim);
+  animation: pulse-dot 2.2s ease-in-out infinite;
 }
 
 .auth-eyebrow {
@@ -350,18 +406,15 @@ form button {
   padding: 13px;
   background: var(--accent);
   border: none;
-  border-radius: var(--radius-pill);
   color: var(--accent-contrast);
   font-family: 'Tajawal', sans-serif;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   margin-top: 6px;
-  transition: opacity 0.15s ease, transform 0.1s ease;
 }
 
-form button:hover { opacity: 0.85; }
-form button:active { transform: scale(0.98); }
+form button:hover { opacity: 0.9; }
 
 #message { color: var(--coral); margin-top: 14px; font-size: 14px; min-height: 18px; }
 
@@ -386,7 +439,7 @@ form button:active { transform: scale(0.98); }
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 22px 20px;
+  padding: 24px 20px 20px;
   text-align: center;
   flex: 1;
   min-width: 130px;
@@ -397,8 +450,8 @@ form button:active { transform: scale(0.98); }
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--signal), var(--frequency));
+  height: 4px;
+  background: var(--bars);
 }
 
 .stat-card .number {
@@ -453,18 +506,28 @@ form button:active { transform: scale(0.98); }
 /* ===== Profile card ===== */
 
 .profile-card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 34px 20px;
   text-align: center;
+  overflow: hidden;
+}
+
+.profile-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--bars);
 }
 
 .profile-avatar {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--signal), #ff8a5c);
+  background: linear-gradient(135deg, var(--signal), var(--bar-yellow));
   color: #fff;
   font-family: 'Changa', sans-serif;
   font-size: 26px;
@@ -473,7 +536,7 @@ form button:active { transform: scale(0.98); }
   align-items: center;
   justify-content: center;
   margin: 0 auto 14px;
-  box-shadow: 0 10px 26px rgba(255, 78, 50, 0.28);
+  box-shadow: 0 10px 26px rgba(232, 90, 59, 0.3);
 }
 
 .profile-username {
@@ -491,11 +554,12 @@ form button:active { transform: scale(0.98); }
   color: var(--coral);
 }
 
-.profile-logout:hover { background: var(--coral); color: var(--accent-contrast); }
+.profile-logout:hover { background: var(--coral); color: #fff; }
 
 .header-minimal {
   position: static;
   border-bottom: none;
+  border-top: none;
   padding: 14px 20px;
   background: transparent;
   backdrop-filter: none;
@@ -533,7 +597,7 @@ form button:active { transform: scale(0.98); }
 .show-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(11, 13, 18, 0.1) 0%, rgba(11, 13, 18, 0.65) 55%, var(--bg) 100%);
+  background: linear-gradient(180deg, rgba(18, 16, 20, 0.1) 0%, rgba(18, 16, 20, 0.65) 55%, var(--bg) 100%);
 }
 
 .show-hero-content {
@@ -664,7 +728,7 @@ body.has-bottom-nav main {
   right: 16px;
   max-width: 520px;
   margin-inline: auto;
-  background: rgba(20, 23, 29, 0.85);
+  background: rgba(26, 23, 28, 0.88);
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
   border: 1px solid var(--line-strong);
@@ -749,8 +813,8 @@ body.has-bottom-nav main {
 
 .card-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--frequency), #6df5da);
-  box-shadow: 0 0 8px rgba(47, 224, 184, 0.55);
+  background: linear-gradient(90deg, var(--frequency), var(--bar-green));
+  box-shadow: 0 0 8px rgba(63, 198, 186, 0.55);
   border-radius: var(--radius-pill);
 }
 
@@ -786,9 +850,9 @@ body.has-bottom-nav main {
 .upcoming-date-badge {
   min-width: 54px;
   padding: 8px 6px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--signal-dim);
-  border: 1px solid rgba(255, 78, 50, 0.3);
+  border: 1px solid rgba(232, 90, 59, 0.35);
   text-align: center;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
@@ -879,7 +943,7 @@ body.has-bottom-nav main {
   width: 50px;
   height: 75px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--surface-2);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
@@ -904,12 +968,12 @@ body.has-bottom-nav main {
 }
 
 .toast {
-  background: rgba(27, 31, 39, 0.92);
+  background: rgba(34, 31, 38, 0.94);
   backdrop-filter: blur(10px);
   border: 1px solid var(--line-strong);
   color: var(--text);
   padding: 12px 20px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-family: 'Tajawal', sans-serif;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -942,27 +1006,23 @@ body.has-bottom-nav main {
 
 .empty-state-hint { font-size: 13px; color: var(--text-muted); }
 
-.search-loading {
-  color: var(--text-muted);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  padding: 10px 0;
-}
-
 /* ===== Card button variants ===== */
 
 .card button.btn-danger {
   background: transparent;
   border: 1px solid var(--line);
   color: var(--coral);
+  box-shadow: none;
 }
 
-.card button.btn-danger:hover { background: var(--coral); color: var(--accent-contrast); }
+.card button.btn-danger:hover { background: var(--coral); color: #fff; }
+.card button.btn-danger:active { transform: none; }
 
 .card button.btn-added {
   background: var(--surface-3);
   color: var(--frequency);
   cursor: default;
+  box-shadow: none;
 }
 
 .card button.btn-added:hover { background: var(--surface-3); opacity: 1; }
@@ -1021,25 +1081,36 @@ body.has-bottom-nav main {
   border: 1px solid var(--line);
   color: var(--frequency);
   padding: 7px 14px;
-  border-radius: var(--radius-pill);
   font-family: 'Tajawal', sans-serif;
   font-size: 12.5px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  box-shadow: none !important;
 }
 
 .btn-mark-season:hover { background: var(--frequency); color: var(--accent-contrast); }
+.btn-mark-season:active { transform: none !important; }
 .btn-mark-season:disabled { opacity: 0.6; cursor: default; }
 
 .season-episodes { margin-top: 14px; }
 
 .season-block {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
   margin-bottom: 16px;
   border-radius: var(--radius-lg);
-  padding: 20px 22px;
+  padding: 22px 22px 20px;
+  overflow: hidden;
+}
+
+.season-block::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--bars);
+  opacity: 0.7;
 }
 
 .season-block h3 {
@@ -1080,7 +1151,7 @@ body.has-bottom-nav main {
   height: 22px;
   min-width: 22px;
   border: 2px solid var(--line);
-  border-radius: 7px;
+  border-radius: 6px;
   background: var(--surface-2);
   cursor: pointer;
   position: relative;
@@ -1175,15 +1246,27 @@ textarea { resize: vertical; line-height: 1.6; min-height: 90px; }
 }
 
 .reviews-header h2 { border: none; padding: 0; margin: 0; display: flex; align-items: center; gap: 8px; font-size: 19px; }
+.reviews-header h2::after { display: none; }
 
 .reviews-sort { display: flex; gap: 8px; }
 
 .review-form {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 18px 16px 16px;
   margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.review-form::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--bars);
+  opacity: 0.7;
 }
 
 .review-form-actions {
@@ -1214,16 +1297,13 @@ textarea { resize: vertical; line-height: 1.6; min-height: 90px; }
   border: none;
   color: #fff;
   padding: 9px 22px;
-  border-radius: var(--radius-pill);
   font-family: 'Tajawal', sans-serif;
   font-weight: 700;
   font-size: 13.5px;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.1s ease;
 }
 
-.btn-submit-review:hover { opacity: 0.85; }
-.btn-submit-review:active { transform: scale(0.97); }
+.btn-submit-review:hover { opacity: 0.9; }
 
 .review-form .field-hint { text-align: right; margin: 10px 2px 0; }
 
@@ -1326,6 +1406,7 @@ textarea { resize: vertical; line-height: 1.6; min-height: 90px; }
   main { padding: 0 14px 40px; margin-top: 16px; }
   .stats-box { flex-direction: column; }
   .auth-container { margin: 40px auto; padding: 30px 22px; }
+  .auth-container::before { margin: -30px -22px 30px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
