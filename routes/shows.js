@@ -297,13 +297,22 @@ router.get("/my/upcoming", requireAuth, async (req, res) => {
   }
 });
 
-// 5) تفاصيل مسلسل معين (بيرجع كل المواسم)
+// 5) تفاصيل مسلسل معين (بيرجع كل المواسم + طاقم التمثيل + منصات المشاهدة + IMDb ID)
 router.get("/:showId", async (req, res) => {
   const { showId } = req.params;
   try {
-    const url = `${TMDB_BASE}/tv/${showId}?api_key=${TMDB_API_KEY}&language=ar`;
-    const response = await fetch(url);
-    const data = await response.json();
+    const detailsUrl = `${TMDB_BASE}/tv/${showId}?api_key=${TMDB_API_KEY}&language=ar&append_to_response=aggregate_credits,watch/providers,external_ids`;
+    // بنجيب الفيديوهات لوحدها بالإنجليزي عشان معظم التريلرات متوسومة en-US،
+    // ولو طلبناها بالعربي هيرجع فاضي لمعظم المسلسلات
+    const videosUrl = `${TMDB_BASE}/tv/${showId}/videos?api_key=${TMDB_API_KEY}&language=en-US`;
+
+    const [detailsRes, videosRes] = await Promise.all([
+      fetch(detailsUrl),
+      fetch(videosUrl)
+    ]);
+    const data = await detailsRes.json();
+    data.videos = await videosRes.json();
+
     res.json(data);
   } catch (err) {
     console.error(err);

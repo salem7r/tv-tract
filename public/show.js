@@ -17,6 +17,13 @@ async function loadShow() {
   const show = await showRes.json();
 
   populateHero(show);
+  renderOverview(show);
+  renderTrailer(show);
+  renderDetailsGrid(show);
+  renderCastAndCrew(show);
+  renderCompanies(show);
+  renderProviders(show);
+  renderAwards(show);
 
   // 2) تقدم المشاهدة وتقييماتي الحالية (مسلسل/موسم/حلقة كلهم مع بعض)
   const [progressRes, ratingsRes] = await Promise.all([
@@ -152,15 +159,25 @@ async function loadShow() {
 function populateHero(show) {
   const heroEl = document.getElementById("showHero");
   const imgEl = document.getElementById("heroBackdrop");
+  const posterWrap = document.getElementById("heroPosterWrap");
+  const posterImg = document.getElementById("heroPoster");
 
   showPosterPath = show.poster_path || null;
 
   const backdropPath = show.backdrop_path || show.poster_path;
   if (backdropPath) {
     imgEl.onload = () => heroEl.classList.add("hero-loaded");
-    imgEl.src = `https://image.tmdb.org/t/p/w780${backdropPath}`;
+    imgEl.src = `https://image.tmdb.org/t/p/w1280${backdropPath}`;
   } else {
     heroEl.classList.add("hero-loaded", "no-backdrop");
+  }
+
+  if (show.poster_path) {
+    posterImg.src = `https://image.tmdb.org/t/p/w300${show.poster_path}`;
+    posterImg.alt = show.name || "";
+    posterWrap.classList.remove("hidden");
+  } else {
+    posterWrap.classList.add("hidden");
   }
 
   if (show.name) {
@@ -175,8 +192,229 @@ function populateHero(show) {
   if (year) chips.push(`<span class="chip">${year}</span>`);
   if (rating && rating !== "0.0") chips.push(`<span class="chip chip-gold">⭐ ${rating}</span>`);
   if (genres) chips.push(`<span class="chip">${escapeHtml(genres)}</span>`);
+  const statusLabel = translateStatus(show.status);
+  if (statusLabel) chips.push(`<span class="chip">${statusLabel}</span>`);
 
   document.getElementById("showMeta").innerHTML = chips.join("");
+}
+
+function translateStatus(status) {
+  const map = {
+    "Returning Series": "🟢 مستمر",
+    "Ended": "⚪ انتهى",
+    "Canceled": "🔴 اتلغى",
+    "In Production": "🟡 قيد الإنتاج",
+    "Planned": "🟡 مخطط له",
+    "Pilot": "🟡 حلقة تجريبية"
+  };
+  return map[status] || null;
+}
+
+// ===== القصة =====
+
+function renderOverview(show) {
+  const section = document.getElementById("showOverviewSection");
+  if (!show.overview) { section.innerHTML = ""; return; }
+  section.innerHTML = `
+    <h2>📖 القصة</h2>
+    <p class="overview-text">${escapeHtml(show.overview)}</p>
+  `;
+}
+
+// ===== التريلر =====
+
+function renderTrailer(show) {
+  const section = document.getElementById("showTrailerSection");
+  const videos = (show.videos && show.videos.results) || [];
+
+  const trailer = videos.find(v => v.site === "YouTube" && v.type === "Trailer" && v.official)
+    || videos.find(v => v.site === "YouTube" && v.type === "Trailer")
+    || videos.find(v => v.site === "YouTube" && v.type === "Teaser");
+
+  if (!trailer) { section.innerHTML = ""; return; }
+
+  section.innerHTML = `
+    <h2>🎬 التريلر</h2>
+    <div class="trailer-wrap">
+      <iframe src="https://www.youtube.com/embed/${trailer.key}" title="التريلر" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen loading="lazy"></iframe>
+    </div>
+  `;
+}
+
+// ===== تفاصيل (عدد المواسم/الحلقات/المدة/اللغة/بلد الإنتاج...) =====
+
+function renderDetailsGrid(show) {
+  const section = document.getElementById("showDetailsSection");
+  const items = [];
+
+  items.push({ label: "عدد المواسم", value: show.number_of_seasons ?? "—" });
+  items.push({ label: "عدد الحلقات", value: show.number_of_episodes ?? "—" });
+
+  const runtime = (show.episode_run_time && show.episode_run_time[0])
+    || (show.last_episode_to_air && show.last_episode_to_air.runtime)
+    || null;
+  items.push({ label: "مدة الحلقة", value: runtime ? `${runtime} دقيقة` : "غير محدد" });
+
+  const year = show.first_air_date ? show.first_air_date.split("-")[0] : "غير محدد";
+  items.push({ label: "سنة الإنتاج", value: year });
+
+  const lang = (show.spoken_languages && show.spoken_languages[0])
+    ? (show.spoken_languages[0].name || show.spoken_languages[0].english_name)
+    : "غير محدد";
+  items.push({ label: "اللغة", value: lang });
+
+  const countries = (show.production_countries || []).map(c => c.name).join("، ");
+  items.push({ label: "بلد الإنتاج", value: countries || "غير محدد" });
+
+  const genres = (show.genres || []).map(g => g.name).join("، ");
+  items.push({ label: "التصنيف", value: genres || "غير محدد" });
+
+  section.innerHTML = `
+    <h2>ℹ️ تفاصيل</h2>
+    <div class="spec-grid">
+      ${items.map(i => `
+        <div class="spec-item">
+          <div class="spec-label">${i.label}</div>
+          <div class="spec-value">${escapeHtml(String(i.value))}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+// ===== طاقم التمثيل + الإخراج والكتابة =====
+
+function renderCastAndCrew(show) {
+  const castSection = document.getElementById("showCastSection");
+  const crewSection = document.getElementById("showCrewSection");
+
+  const credits = show.aggregate_credits || { cast: [], crew: [] };
+  const cast = credits.cast || [];
+  const crew = credits.crew || [];
+
+  if (cast.length > 0) {
+    const topCast = cast.slice(0, 12);
+    castSection.innerHTML = `
+      <h2>🎭 طاقم التمثيل</h2>
+      <div class="cast-scroll">
+        ${topCast.map(actor => {
+          const photo = actor.profile_path
+            ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+            : "https://via.placeholder.com/100x150?text=%20";
+          const character = (actor.roles && actor.roles[0]) ? actor.roles[0].character : "";
+          return `
+            <div class="cast-card">
+              <img src="${photo}" alt="${escapeHtml(actor.name)}" loading="lazy">
+              <div class="cast-name">${escapeHtml(actor.name)}</div>
+              ${character ? `<div class="cast-character">${escapeHtml(character)}</div>` : ""}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  } else {
+    castSection.innerHTML = "";
+  }
+
+  const directors = [...new Map(
+    crew.filter(c => (c.jobs || []).some(j => j.job === "Director")).map(c => [c.id, c.name])
+  ).values()];
+
+  const creators = (show.created_by || []).map(c => c.name);
+
+  if (directors.length > 0 || creators.length > 0) {
+    crewSection.innerHTML = `
+      <h2>🎥 الإخراج والكتابة</h2>
+      <div class="crew-rows">
+        ${creators.length ? `
+          <div class="crew-row">
+            <span class="crew-role">الفكرة والكتابة</span>
+            <span class="crew-names">${creators.map(escapeHtml).join("، ")}</span>
+          </div>` : ""}
+        ${directors.length ? `
+          <div class="crew-row">
+            <span class="crew-role">الإخراج</span>
+            <span class="crew-names">${directors.slice(0, 6).map(escapeHtml).join("، ")}</span>
+          </div>` : ""}
+      </div>
+    `;
+  } else {
+    crewSection.innerHTML = "";
+  }
+}
+
+// ===== شركة الإنتاج =====
+
+function renderCompanies(show) {
+  const section = document.getElementById("showCompaniesSection");
+  const companies = show.production_companies || [];
+  if (companies.length === 0) { section.innerHTML = ""; return; }
+
+  section.innerHTML = `
+    <h2>🏢 شركة الإنتاج</h2>
+    <div class="card-meta">
+      ${companies.map(c => `<span class="chip">${escapeHtml(c.name)}</span>`).join("")}
+    </div>
+  `;
+}
+
+// ===== المنصات المتوفر عليها =====
+
+function renderProviders(show) {
+  const section = document.getElementById("showProvidersSection");
+  const providersData = show["watch/providers"] && show["watch/providers"].results;
+
+  const region = providersData && (providersData.EG || providersData.SA || providersData.AE || providersData.US);
+
+  if (!region) {
+    section.innerHTML = `
+      <h2>📡 متاح على</h2>
+      <p class="section-empty-note">مفيش بيانات منصات متاحة لهذا المسلسل في منطقتك حاليًا (البيانات من TMDb ومش مكتملة لكل المناطق)</p>
+    `;
+    return;
+  }
+
+  const all = [...(region.flatrate || []), ...(region.ads || [])];
+  const unique = [...new Map(all.map(p => [p.provider_id, p])).values()];
+
+  if (unique.length === 0) { section.innerHTML = ""; return; }
+
+  section.innerHTML = `
+    <h2>📡 متاح على</h2>
+    <div class="providers-row">
+      ${unique.map(p => `
+        <div class="provider-badge" title="${escapeHtml(p.provider_name)}">
+          <img src="https://image.tmdb.org/t/p/w92${p.logo_path}" alt="${escapeHtml(p.provider_name)}" loading="lazy">
+          <span>${escapeHtml(p.provider_name)}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+// ===== الجوائز =====
+// TMDb مش بيوفر بيانات جوائز، فبنوجّه المستخدم لصفحة الجوائز على IMDb لو الـ ID متاح
+
+function renderAwards(show) {
+  const section = document.getElementById("showAwardsSection");
+  const imdbId = show.external_ids && show.external_ids.imdb_id;
+
+  if (imdbId) {
+    section.innerHTML = `
+      <h2>🏆 الجوائز</h2>
+      <p class="section-empty-note">مصدر بيانات التطبيق (TMDb) مش بيوفر تفاصيل الجوائز، بس تقدر تشوفها مباشرة على IMDb:</p>
+      <a class="btn-imdb-link" href="https://www.imdb.com/title/${imdbId}/awards" target="_blank" rel="noopener noreferrer">
+        شوف الجوائز على IMDb ↗
+      </a>
+    `;
+  } else {
+    section.innerHTML = `
+      <h2>🏆 الجوائز</h2>
+      <p class="section-empty-note">بيانات الجوائز مش متاحة لهذا المسلسل حاليًا</p>
+    `;
+  }
 }
 
 // ===== التقييمات =====
