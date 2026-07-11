@@ -44,8 +44,10 @@ function skeletonGrid(count = 6) {
   return Array.from({ length: count }).map(() => `
     <div class="card skeleton-card">
       <div class="skeleton-shimmer skeleton-poster"></div>
-      <div class="skeleton-shimmer skeleton-line"></div>
-      <div class="skeleton-shimmer skeleton-line-short"></div>
+      <div class="card-actions">
+        <div class="skeleton-shimmer skeleton-line"></div>
+        <div class="skeleton-shimmer skeleton-line-short"></div>
+      </div>
     </div>
   `).join("");
 }

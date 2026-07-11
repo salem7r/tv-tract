@@ -121,11 +121,17 @@ async function loadMyShows() {
     return `
       <div class="card">
         <a href="/show.html?id=${show.showId}&name=${encodeURIComponent(show.showName)}">
-          <img src="${poster}" alt="${escapeHtml(show.showName)}" loading="lazy">
-          <h3>${escapeHtml(show.showName)}</h3>
+          <div class="card-poster">
+            <img src="${poster}" alt="${escapeHtml(show.showName)}" loading="lazy">
+            <div class="card-poster-overlay">
+              <h3>${escapeHtml(show.showName)}</h3>
+            </div>
+          </div>
         </a>
-        ${progressHtml}
-        <button class="btn-danger" onclick="removeShow('${show.id}', ${JSON.stringify(show.showName)})">حذف من قائمتي</button>
+        <div class="card-actions">
+          ${progressHtml}
+          <button class="btn-danger" onclick="removeShow('${show.id}', ${JSON.stringify(show.showName)})">حذف من قائمتي</button>
+        </div>
       </div>
     `;
   }).join("");

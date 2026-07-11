@@ -30,12 +30,10 @@ function renderShowCards(results, container) {
 
     const year = show.first_air_date ? show.first_air_date.split("-")[0] : null;
     const rating = show.vote_average ? show.vote_average.toFixed(1) : null;
-    const metaParts = [];
-    if (year) metaParts.push(year);
-    if (rating && rating !== "0.0") metaParts.push(`⭐ ${rating}`);
-    const metaHtml = metaParts.length
-      ? `<div class="card-meta">${metaParts.join(" • ")}</div>`
-      : "";
+    const chips = [];
+    if (year) chips.push(`<span class="chip">${year}</span>`);
+    if (rating && rating !== "0.0") chips.push(`<span class="chip chip-gold">⭐ ${rating}</span>`);
+    const metaHtml = chips.length ? `<div class="card-meta">${chips.join("")}</div>` : "";
 
     const alreadyAdded = myShowIds.has(String(show.id));
     const buttonHtml = alreadyAdded
@@ -44,10 +42,14 @@ function renderShowCards(results, container) {
 
     return `
       <div class="card">
-        <img src="${poster}" alt="${escapeHtml(show.name)}" loading="lazy">
-        <h3>${escapeHtml(show.name)}</h3>
-        ${metaHtml}
-        ${buttonHtml}
+        <div class="card-poster">
+          <img src="${poster}" alt="${escapeHtml(show.name)}" loading="lazy">
+          <div class="card-poster-overlay">
+            <h3>${escapeHtml(show.name)}</h3>
+            ${metaHtml}
+          </div>
+        </div>
+        <div class="card-actions">${buttonHtml}</div>
       </div>
     `;
   }).join("");

@@ -168,12 +168,12 @@ function populateHero(show) {
   const rating = show.vote_average ? show.vote_average.toFixed(1) : null;
   const genres = (show.genres || []).map(g => g.name).join("، ");
 
-  const metaParts = [];
-  if (year) metaParts.push(year);
-  if (rating && rating !== "0.0") metaParts.push(`⭐ ${rating}`);
-  if (genres) metaParts.push(genres);
+  const chips = [];
+  if (year) chips.push(`<span class="chip">${year}</span>`);
+  if (rating && rating !== "0.0") chips.push(`<span class="chip chip-gold">⭐ ${rating}</span>`);
+  if (genres) chips.push(`<span class="chip">${escapeHtml(genres)}</span>`);
 
-  document.getElementById("showMeta").textContent = metaParts.join(" • ");
+  document.getElementById("showMeta").innerHTML = chips.join("");
 }
 
 // ===== التقييمات =====
