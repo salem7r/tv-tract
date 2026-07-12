@@ -46,7 +46,7 @@ function reviewCardHtml(r, likeOnClick, deleteOnClick) {
   return `
     <div class="review-card">
       <div class="review-card-header">
-        <span class="review-username">${escapeHtml(r.username)}</span>
+        <a class="review-username" href="/user.html?username=${encodeURIComponent(r.username)}">${escapeHtml(r.username)}</a>
         <span class="review-date">${formatReviewDate(r.createdAt)}</span>
       </div>
       <p class="review-text">${renderReviewText(r.text)}</p>
@@ -270,4 +270,8 @@ async function deleteEpisodeReview(id, season, episode) {
   loadEpisodeReviews(season, episode);
 }
 
-loadReviews();
+// بيتنفذ بس لو الصفحة فيها قسم مراجعات على مستوى المسلسل (يعني إحنا في show.html)
+// صفحة الحلقة (episode.html) بتستخدم نفس الملف بس لدوال مراجعات الحلقة بس
+if (document.getElementById("reviewsList")) {
+  loadReviews();
+}

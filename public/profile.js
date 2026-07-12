@@ -10,10 +10,24 @@ async function loadProfile() {
     return;
   }
 
+  renderProfileCard(data.username, data.avatarPath);
+  loadBadges(data.username);
+}
+
+function renderProfileCard(username, avatarPath) {
   const card = document.getElementById("profileCard");
+  const avatarHtml = avatarPath
+    ? `<img class="profile-avatar profile-avatar-img" src="${avatarPath}" alt="${escapeHtml(username)}">`
+    : `<div class="profile-avatar">${escapeHtml(username.charAt(0).toUpperCase())}</div>`;
+
   card.innerHTML = `
-    <div class="profile-avatar">${escapeHtml(data.username.charAt(0).toUpperCase())}</div>
-    <div class="profile-username">${escapeHtml(data.username)}</div>
+    <label class="avatar-upload-wrap" title="اضغط لتغيير صورتك">
+      ${avatarHtml}
+      <div class="avatar-upload-overlay">✏️</div>
+      <input type="file" accept="image/*" class="hidden" onchange="uploadAvatar(this, '${escapeHtml(username)}')">
+    </label>
+    <div class="profile-username">${escapeHtml(username)}</div>
+    <a class="public-profile-link" href="/user.html?username=${encodeURIComponent(username)}">👁️ شوف بروفايلك العام</a>
     <button id="logoutBtn" class="btn-danger profile-logout">تسجيل الخروج</button>
   `;
 
@@ -21,6 +35,44 @@ async function loadProfile() {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/login.html";
   });
+}
+
+async function uploadAvatar(input, username) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const res = await fetch("/api/auth/avatar", { method: "POST", body: formData });
+  const data = await res.json();
+
+  if (res.ok) {
+    showToast("تم تحديث صورتك");
+    renderProfileCard(username, data.avatarPath);
+  } else {
+    showToast(data.error, "error");
+  }
+}
+
+async function loadBadges(username) {
+  const box = document.getElementById("badgesBox");
+  const res = await fetch(`/api/users/${encodeURIComponent(username)}`);
+  if (!res.ok) return;
+
+  const data = await res.json();
+
+  if (data.badges.length === 0) {
+    box.innerHTML = `<p class="section-empty-note">لسه معملش حاجة تستاهل وسام 👀 كتب مراجعة أو قيّم مسلسل أو خلّص مسلسل وهتكسب أوسمة</p>`;
+    return;
+  }
+
+  box.innerHTML = data.badges.map(b => `
+    <div class="badge-item">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-label">${escapeHtml(b.label)}</div>
+    </div>
+  `).join("");
 }
 
 async function loadStats() {

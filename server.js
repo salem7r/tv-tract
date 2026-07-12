@@ -9,6 +9,7 @@ const authRoutes = require("./routes/auth");
 const showsRoutes = require("./routes/shows");
 const reviewsRoutes = require("./routes/reviews");
 const listsRoutes = require("./routes/lists");
+const usersRoutes = require("./routes/users");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/shows", showsRoutes);
 app.use("/api/reviews", reviewsRoutes);
 app.use("/api/lists", listsRoutes);
+app.use("/api/users", usersRoutes);
 
 app.listen(PORT, () => {
   console.log(`السيرفر شغال على http://localhost:${PORT}`);

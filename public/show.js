@@ -103,7 +103,10 @@ async function loadShow() {
               data-episode="${ep.episode_number}"
               ${isWatched ? "checked" : ""}
               onchange="toggleWatched(this)">
-            <span>ح${ep.episode_number}: ${escapeHtml(ep.name)}</span>
+            <a class="episode-link" onclick="event.stopPropagation()"
+              href="/episode.html?showId=${showId}&showName=${encodeURIComponent(showName)}&season=${season.season_number}&episode=${ep.episode_number}">
+              ح${ep.episode_number}: ${escapeHtml(ep.name)}
+            </a>
             <div class="episode-rating-wrap">
               ${starRatingHtml(
                 episodeRatingValue,

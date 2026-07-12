@@ -334,6 +334,22 @@ router.get("/:showId/season/:seasonNumber", async (req, res) => {
   }
 });
 
+// 5.5) تفاصيل حلقة معينة (بيانات + طاقم الحلقة + ضيوف + صور)
+router.get("/:showId/season/:seasonNumber/episode/:episodeNumber", async (req, res) => {
+  const { showId, seasonNumber, episodeNumber } = req.params;
+  try {
+    // include_image_language=null,en,ar عشان نجيب أكبر عدد صور، لأن أغلب صور الحلقات مش متوسومة بلغة أصلًا
+    const url = `${TMDB_BASE}/tv/${showId}/season/${seasonNumber}/episode/${episodeNumber}` +
+      `?api_key=${TMDB_API_KEY}&language=ar&append_to_response=images&include_image_language=null,en,ar`;
+    const response = await fetch(url);
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "حصل خطأ في جلب تفاصيل الحلقة" });
+  }
+});
+
 // 6) إضافة مسلسل لقائمة "مسلسلاتي"
 router.post("/my-shows", requireAuth, async (req, res) => {
   try {
